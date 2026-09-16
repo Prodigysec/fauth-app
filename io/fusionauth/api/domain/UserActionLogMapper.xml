@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c) 2018-2022, FusionAuth, All Rights Reserved
+  -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.UserActionLogMapper">
+  <resultMap id="UserActionLog" type="io.fusionauth.domain.UserActionLog">
+    <id column="ual_id" property="id"/>
+    <result column="ual_actionee_users_id" property="actioneeUserId"/>
+    <result column="ual_actioner_users_id" property="actionerUserId"/>
+    <result column="ual_comment" property="comment"/>
+    <result column="ual_insert_instant" property="insertInstant"/>
+    <result column="ual_email_user_on_end" property="emailUserOnEnd"/>
+    <result column="ual_end_event_sent" property="endEventSent"/>
+    <result column="ual_expiry" property="expiry"/>
+    <result column="ual_history" property="history"/>
+    <result column="ual_localized_name" property="localizedName"/>
+    <result column="ual_localized_option" property="localizedOption"/>
+    <result column="ual_localized_reason" property="localizedReason"/>
+    <result column="ual_name" property="name"/>
+    <result column="ual_notify_user_on_end" property="notifyUserOnEnd"/>
+    <result column="ual_option_name" property="option"/>
+    <result column="ual_reason" property="reason"/>
+    <result column="ual_reason_code" property="reasonCode"/>
+    <result column="ual_user_actions_id" property="userActionId"/>
+    <collection property="applicationIds" ofType="java.util.UUID">
+      <result column="uala_applications_id"/>
+    </collection>
+  </resultMap>
+
+  <sql id="select">
+    SELECT
+      ual.id                 AS ual_id,
+      ual.actionee_users_id  AS ual_actionee_users_id,
+      ual.actioner_users_id  AS ual_actioner_users_id,
+      ual.comment            AS ual_comment,
+      ual.insert_instant     AS ual_insert_instant,
+      ual.end_event_sent     AS ual_end_event_sent,
+      ual.expiry             AS ual_expiry,
+      ual.history            AS ual_history,
+      ual.localized_name     AS ual_localized_name,
+      ual.localized_option   AS ual_localized_option,
+      ual.localized_reason   AS ual_localized_reason,
+      ual.name               AS ual_name,
+      ual.notify_user_on_end AS ual_notify_user_on_end,
+      ual.email_user_on_end  AS ual_email_user_on_end,
+      ual.option_name        AS ual_option_name,
+      ual.reason             AS ual_reason,
+      ual.reason_code        AS ual_reason_code,
+      ual.user_actions_id    AS ual_user_actions_id,
+      uala.applications_id   AS uala_applications_id
+    FROM user_action_logs AS ual
+      LEFT OUTER JOIN user_action_logs_applications AS uala ON ual.id = uala.user_action_logs_id
+  </sql>
+
+  <insert id="createApplicationAssociations">
+    INSERT INTO user_action_logs_applications (applications_id, user_action_logs_id) VALUES
+    <foreach collection="applicationIds" item="applicationId" separator=",">
+      (#{applicationId}, #{id})
+    </foreach>
+  </insert>
+
+  <delete id="deleteApplicationAssociationsForActionee" databaseId="mysql">
+    DELETE user_action_logs_applications FROM user_action_logs_applications
+    INNER JOIN user_action_logs ON user_action_logs_applications.user_action_logs_id = user_action_logs.id
+    WHERE user_action_logs.actionee_users_id = #{id}
+  </delete>
+
+  <delete id="deleteApplicationAssociationsForActionee" databaseId="postgresql">
+    DELETE FROM user_action_logs_applications
+    USING user_action_logs
+    WHERE
+      user_action_logs_applications.user_action_logs_id = user_action_logs.id AND
+      user_action_logs.actionee_users_id = #{id}
+  </delete>
+
+  <delete id="deleteApplicationAssociationsForActioner" databaseId="mysql">
+    DELETE user_action_logs_applications FROM user_action_logs_applications
+    INNER JOIN user_action_logs ON user_action_logs_applications.user_action_logs_id = user_action_logs.id
+    WHERE user_action_logs.actioner_users_id = #{id}
+  </delete>
+
+  <delete id="deleteApplicationAssociationsForActioner" databaseId="postgresql">
+    DELETE FROM user_action_logs_applications
+    USING user_action_logs
+    WHERE
+      user_action_logs_applications.user_action_logs_id = user_action_logs.id AND
+      user_action_logs.actioner_users_id = #{id}
+  </delete>
+
+  <select id="retrieveAllForUser" resultMap="UserActionLog">
+    <include refid="select"/>
+    WHERE ual.actionee_users_id = #{userId}
+  </select>
+
+  <select id="retrieveAllForActioner" resultMap="UserActionLog">
+    <include refid="select"/>
+    WHERE ual.actioner_users_id = #{userId}
+  </select>
+
+  <select id="retrieveById" resultMap="UserActionLog">
+    <include refid="select"/>
+    WHERE ual.id = #{id}
+  </select>
+
+  <select id="retrieveCurrent" resultMap="UserActionLog">
+    <include refid="select"/>
+    WHERE ual.actionee_users_id = #{actioneeUserId} AND ual.user_actions_id = #{actionId} AND ual.expiry > #{now}
+  </select>
+
+  <select id="retrieveAllCurrentPreventLoginActionLogsForUser" resultMap="UserActionLog">
+    <include refid="select"/>
+    INNER JOIN user_actions AS ua ON ua.id = ual.user_actions_id
+    WHERE ua.prevent_login = TRUE AND ual.expiry > #{now} AND ual.actionee_users_id = #{id}
+  </select>
+
+  <select id="retrieveExpired" resultMap="UserActionLog">
+    <include refid="select"/>
+    <!-- Intentionally only matching values that are FALSE - not NULL or TRUE -->
+    WHERE ual.end_event_sent IS FALSE AND ual.expiry &lt; #{now} ORDER BY ual.expiry DESC
+  </select>
+</mapper>

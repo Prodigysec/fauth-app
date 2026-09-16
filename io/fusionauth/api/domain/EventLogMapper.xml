@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c) 2019, FusionAuth, All Rights Reserved
+  -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.EventLogMapper">
+  <resultMap id="EventLog" type="io.fusionauth.domain.EventLog">
+    <id column="id" property="id"/>
+    <result column="insert_instant" property="insertInstant"/>
+    <result column="message" property="message"/>
+    <result column="type" property="type"/>
+  </resultMap>
+
+  <select id="count" resultType="int">
+    SELECT COUNT(*) FROM event_logs
+    <where>
+      <if test="message != null">
+        AND LOWER(message) LIKE #{message}
+      </if>
+      <if test="type != null">
+        AND type = #{type}
+      </if>
+      <if test="start != null">
+        AND insert_instant &gt;= #{start}
+      </if>
+      <if test="end != null">
+        AND insert_instant &lt;= #{end}
+      </if>
+    </where>
+  </select>
+
+  <select id="retrieveByCriteria" resultMap="EventLog">
+    SELECT * FROM event_logs
+    <where>
+      <if test="message != null">
+        AND LOWER(message) LIKE #{message}
+      </if>
+      <if test="type != null">
+        AND type = #{type}
+      </if>
+      <if test="start != null">
+        AND insert_instant &gt;= #{start}
+      </if>
+      <if test="end != null">
+        AND insert_instant &lt;= #{end}
+      </if>
+    </where>
+    <if test="orderBy != null">
+      ORDER BY ${orderBy}
+    </if>
+    <if test="numberOfResults != null">
+      LIMIT #{numberOfResults}
+    </if>
+    <if test="startRow != null">
+      OFFSET #{startRow}
+    </if>
+  </select>
+
+  <delete id="deleteOld" databaseId="mysql">
+    DELETE FROM event_logs ORDER BY insert_instant ASC LIMIT ${number}
+  </delete>
+
+  <delete id="deleteOld" databaseId="postgresql">
+    DELETE FROM event_logs WHERE id IN (SELECT id FROM event_logs ORDER BY insert_instant ASC LIMIT ${number})
+  </delete>
+</mapper>

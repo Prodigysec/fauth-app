@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Implementation-Vendor: io.fusionauth.fusionauth-app
+Implementation-Version: 1.69.2
+Specification-Vendor: io.fusionauth.fusionauth-app
+Specification-Version: 1.69.2
+

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c) 2019, FusionAuth, All Rights Reserved
+  -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.DistributedLockMapper">
+  <select id="isLocked" resultType="boolean">
+    SELECT EXISTS (
+      SELECT type FROM locks
+        WHERE type = #{type} AND update_instant IS NOT NULL AND #{expireTime} &lt;= update_instant
+    )
+  </select>
+
+  <update id="checkin">
+    UPDATE locks
+    SET update_instant = #{now}
+    WHERE type = #{type} AND update_instant IS NOT NULL AND #{expireTime} &lt;= update_instant
+  </update>
+
+  <update id="lock">
+    UPDATE locks
+    SET update_instant = #{now}
+    WHERE type = #{type} AND (update_instant IS NULL OR #{expireTime} &gt; update_instant)
+  </update>
+
+  <update id="unlock">
+    UPDATE locks
+    SET update_instant = NULL
+    WHERE type = #{type}
+  </update>
+</mapper>

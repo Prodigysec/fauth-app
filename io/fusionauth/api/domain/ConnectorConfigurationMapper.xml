@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c) 2020, FusionAuth, All Rights Reserved
+  -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.ConnectorConfigurationMapper">
+  <resultMap id="Connector" type="io.fusionauth.domain.connector.BaseConnectorConfiguration">
+    <id property="id" column="c_id"/>
+    <result property="dataFromDatabase" column="c_data"/>
+    <result property="insertInstant" column="c_insert_instant"/>
+    <result property="lastUpdateInstant" column="c_last_update_instant"/>
+    <result property="name" column="c_name"/>
+    <discriminator javaType="int" column="c_type">
+      <case value="0" resultMap="_FusionAuthConnector"/>
+      <case value="1" resultMap="_GenericConnector"/>
+      <case value="2" resultMap="_LDAPConnector"/>
+    </discriminator>
+  </resultMap>
+
+  <!--  If you want to retrieve columns that are not in the BaseConnector class, you will want to build a new result map with the extra fields-->
+  <resultMap id="_FusionAuthConnector" type="io.fusionauth.domain.connector.FusionAuthConnectorConfiguration" extends="Connector">
+  </resultMap>
+
+  <!--  If you want to retrieve columns that are not in the BaseConnector class, you will want to build a new result map with the extra fields-->
+  <resultMap id="_GenericConnector" type="io.fusionauth.domain.connector.GenericConnectorConfiguration" extends="Connector">
+    <result property="sslCertificateKeyId" column="c_ssl_certificate_keys_id"/>
+  </resultMap>
+
+  <!--  If you want to retrieve columns that are not in the BaseConnector class, you will want to build a new result map with the extra fields-->
+  <resultMap id="_LDAPConnector" type="io.fusionauth.domain.connector.LDAPConnectorConfiguration" extends="Connector">
+    <result property="lambdaConfiguration.reconcileId" column="c_reconcile_lambdas_id"/>
+  </resultMap>
+
+  <sql id="select">
+    SELECT c.id                       AS c_id,
+      c.data                          AS c_data,
+      c.insert_instant                AS c_insert_instant,
+      c.last_update_instant           AS c_last_update_instant,
+      c.name                          AS c_name,
+      c.reconcile_lambdas_id          AS c_reconcile_lambdas_id,
+      c.ssl_certificate_keys_id       AS c_ssl_certificate_keys_id,
+      c.type                          AS c_type
+      FROM connectors AS c
+  </sql>
+
+  <insert id="create">
+    INSERT INTO connectors
+    <choose>
+      <when test="type.name().equals('LDAP')">
+        (id, data, insert_instant, last_update_instant, name, reconcile_lambdas_id, type)
+        VALUES (#{id}, #{dataToDatabase}, #{insertInstant}, #{lastUpdateInstant}, #{name}, #{lambdaConfiguration.reconcileId}, #{type})
+      </when>
+      <when test="type.name().equals('Generic')">
+        (id, data, insert_instant, last_update_instant, name, ssl_certificate_keys_id, type)
+        VALUES (#{id}, #{dataToDatabase}, #{insertInstant}, #{lastUpdateInstant}, #{name}, #{sslCertificateKeyId}, #{type})
+      </when>
+      <otherwise>
+        (id, data, insert_instant, last_update_instant, name, type)
+        VALUES (#{id}, #{dataToDatabase}, #{insertInstant}, #{lastUpdateInstant}, #{name}, #{type})
+      </otherwise>
+    </choose>
+  </insert>
+
+  <update id="update">
+    UPDATE connectors
+    SET
+    data = #{dataToDatabase},
+    last_update_instant = #{lastUpdateInstant},
+    name = #{name}
+    <if test="type.name().equals('LDAP')">
+      ,reconcile_lambdas_id = #{lambdaConfiguration.reconcileId}
+    </if>
+    <if test="type.name().equals('Generic')">
+      ,ssl_certificate_keys_id = #{sslCertificateKeyId}
+    </if>
+    WHERE id = #{id}
+  </update>
+
+  <select id="retrieveById" resultMap="Connector">
+    <include refid="select"/>
+    WHERE c.id = #{id}
+  </select>
+
+  <select id="retrieveExistingByName" resultMap="Connector">
+    <include refid="select"/>
+    WHERE
+    <if test="id != null">
+      c.id != #{id} AND
+    </if>
+    c.name = #{name}
+  </select>
+
+  <select id="retrieveAll" resultMap="Connector">
+    <include refid="select"/>
+    ORDER BY c.insert_instant DESC
+  </select>
+
+  <select id="retrieveAllByType" resultMap="Connector">
+    <include refid="select"/>
+    WHERE type = #{type}
+    ORDER BY c.insert_instant DESC
+  </select>
+</mapper>

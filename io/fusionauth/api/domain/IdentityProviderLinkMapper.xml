@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.IdentityProviderLinkMapper">
+
+  <resultMap id="IdentityProviderLink" type="io.fusionauth.domain.IdentityProviderLink">
+    <result property="dataFromDatabase" column="idp_u_data"/>
+    <result property="identityProviderId" column="idp_u_identity_providers_id"/>
+    <result property="identityProviderName" column="idp_identity_providers_name"/>
+    <result property="identityProviderType" column="idp_identity_providers_type"/>
+    <result property="identityProviderUserId" column="idp_u_identity_providers_user_id"/>
+    <result property="insertInstant" column="idp_u_insert_instant"/>
+    <result property="lastLoginInstant" column="idp_u_last_login_instant"/>
+    <result property="lastUpdateInstant" column="idp_u_last_update_instant"/>
+    <result property="tenantId" column="idp_u_tenants_id"/>
+    <result property="userId" column="idp_u_users_id"/>
+  </resultMap>
+
+</mapper>

@@ -1,0 +1,47 @@
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 5,
+      "number_of_replicas": 1
+    }
+  },
+  "mappings": {
+    "_doc": {
+      "_source": {
+        "enabled": false
+      },
+      "properties": {
+        "clientId": {
+          "type": "keyword"
+        },
+        "id": {
+          "type": "keyword"
+        },
+        "insertInstant": {
+          "type": "date"
+        },
+        "lastUpdateInstant": {
+          "type": "date"
+        },
+        "name": {
+          "type": "text",
+          "fielddata": true,
+          "fields": {
+            "raw": {
+              "type": "keyword"
+            }
+          }
+        },
+        "parentId": {
+          "type": "keyword"
+        },
+        "tenantId": {
+          "type": "keyword"
+        },
+        "typeId": {
+          "type": "keyword"
+        }
+      }
+    }
+  }
+}

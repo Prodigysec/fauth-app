@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.FormMapper">
+  <!-- Allows fetching the form, with all steps in the form, and with all the fields in each step, in a single query
+       without causing an N+1 query problem -->
+  <resultMap id="FormWithFields" type="io.fusionauth.domain.form.Form">
+    <id column="f_id" property="id"/>
+
+    <result property="dataFromDatabase" column="f_data"/>
+    <result property="insertInstant" column="f_insert_instant"/>
+    <result property="name" column="f_name"/>
+    <result property="lastUpdateInstant" column="f_last_update_instant"/>
+    <result property="type" column="f_type"/>
+
+    <collection property="steps" ofType="io.fusionauth.domain.form.FormStep">
+      <!-- The primary key of the form_steps table is an auto-incremented BigSerial. That alone, does not help us identity which
+           form step and field go with each form (this resultMap is used for retrieving > 1 form).
+
+           As MyBatis processes each row, it already will discard rows that go with a different form (based on f_id above
+           in the FormWithFields map). It will not, based on f_id alone, know how to decide where in the list of steps a given step belongs.
+           It would just put all the fields in the first step. By adding fs_step, this ensures all of the fields go in the right step
+           (since each field's fs_step value can be compared, and above all, id is about equality and comparison)
+           From MyBatis docs - "The only difference between the two [id and result] is that id will flag the result as an identifier property to be used when comparing object instances."
+           -->
+      <id column="fs_step"/>
+
+      <result property="type" column="fs_type"/>
+
+      <!-- This is just the field Ids. This is an existing API contract we have to support. -->
+      <collection property="fields" ofType="java.util.UUID">
+        <constructor>
+          <arg column="ff_id" javaType="java.util.UUID"/>
+        </constructor>
+      </collection>
+      <!-- The actual field objects, not just the Ids. the id column mapping in the FormField ResultMap ensures we properly
+           identify field objects in the collection. -->
+      <collection property="fieldObjects" resultMap="FormField" columnPrefix="ff_" />
+    </collection>
+  </resultMap>
+
+  <resultMap id="FormField" type="io.fusionauth.domain.form.FormField">
+    <id column="id" property="id"/>
+    <result property="consentId" column="consents_id"/>
+    <result property="dataFromDatabase" column="data"/>
+    <result property="insertInstant" column="insert_instant"/>
+    <result property="lastUpdateInstant" column="last_update_instant"/>
+    <result property="name" column="name"/>
+  </resultMap>
+
+  <sql id="selectWithFields">
+      SELECT
+        f.id                             AS f_id,
+        f.data                           AS f_data,
+        f.insert_instant                 AS f_insert_instant,
+        f.last_update_instant            AS f_last_update_instant,
+        f.name                           AS f_name,
+        f.type                           AS f_type,
+        fs.step                          AS fs_step,
+        fs.type                          AS fs_type,
+        ff.id                            AS ff_id,
+        ff.consents_id                   AS ff_consents_id,
+        ff.data                          AS ff_data,
+        ff.insert_instant                AS ff_insert_instant,
+        ff.last_update_instant           AS ff_last_update_instant,
+        ff.name                          AS ff_name
+      FROM forms f
+        <!-- LEFT JOIN because the form may not have steps -->
+        LEFT JOIN form_steps fs ON f.id = fs.forms_id
+        <!-- LEFT JOIN because some form step types (verify) will not have any form fields -->
+        LEFT JOIN form_fields ff ON ff.id = fs.form_fields_id
+      <!-- Different users of this fragment have different order requirements, so see those for ORDER BY -->
+  </sql>
+
+  <sql id="selectField">
+    SELECT
+      ff.id                            AS id,
+      ff.consents_id                   AS consents_id,
+      ff.data                          AS data,
+      ff.insert_instant                AS insert_instant,
+      ff.last_update_instant           AS last_update_instant,
+      ff.name                          AS name
+      FROM form_fields AS ff
+  </sql>
+
+  <insert id="create">
+    INSERT INTO forms (id, data, insert_instant, last_update_instant, name, type)
+    VALUES (#{id}, #{dataToDatabase} ,#{insertInstant}, #{lastUpdateInstant}, #{name}, #{type})
+  </insert>
+
+  <insert id="createCollectDataFormStep">
+    INSERT INTO form_steps (form_fields_id, forms_id, type, sequence, step) VALUES
+    <foreach collection="fieldIds" item="fieldId" separator="," index="index">
+      (#{fieldId}, #{formId}, #{type}, #{index}, #{step})
+    </foreach>
+  </insert>
+
+  <insert id="createNonDataFormStep">
+    INSERT INTO form_steps (forms_id, type, sequence, step)
+    <!-- Steps without fields do not need a sequence other than zero, because there will not be multiple fields -->
+    VALUES (#{formId}, #{type}, 0, #{step})
+  </insert>
+
+  <insert id="createField">
+    INSERT INTO form_fields (id, consents_id, data, insert_instant, last_update_instant, name)
+    VALUES (#{id}, #{consentId}, #{dataToDatabase} ,#{insertInstant}, #{lastUpdateInstant}, #{name})
+  </insert>
+
+  <select id="retrieveById" resultMap="FormWithFields">
+    <include refid="selectWithFields"/>
+    WHERE f.id = #{id}
+    <!-- single form, order just by step and sequence -->
+    ORDER BY fs.step, fs.sequence
+  </select>
+
+  <select id="retrieveFieldById" resultMap="FormField">
+    <include refid="selectField"/>
+    WHERE ff.id = #{id}
+  </select>
+
+  <select id="retrieveAll" resultMap="FormWithFields">
+    <include refid="selectWithFields"/>
+    <!-- newest form first, then by name, then in order of step and sequence -->
+    ORDER BY f.insert_instant DESC, f.name ASC, fs.step, fs.sequence
+  </select>
+
+  <select id="retrieveAllByType" resultMap="FormWithFields">
+    <include refid="selectWithFields"/>
+    WHERE f.type = #{type}
+    <!-- newest form first, then by name, then in order of step and sequence -->
+    ORDER BY f.insert_instant DESC, f.name ASC, fs.step, fs.sequence
+  </select>
+
+  <select id="retrieveAllFields" resultMap="FormField">
+    <include refid="selectField"/>
+    ORDER BY ff.insert_instant DESC
+  </select>
+
+  <select id="retrieveExisting" resultMap="FormWithFields">
+    <include refid="selectWithFields"/>
+    WHERE
+    <if test="id != null">
+      f.id != #{id} AND
+    </if>
+    f.name = #{name}
+    <!-- need our steps and fields in the right order -->
+    ORDER BY fs.step, fs.sequence
+  </select>
+
+  <select id="retrieveFieldIdByConsentId" resultType="java.util.UUID">
+    SELECT
+     id FROM form_fields
+    WHERE
+    consents_id = #{consentId}
+  </select>
+
+  <select id="retrieveExistingField" resultMap="FormField">
+    <include refid="selectField"/>
+    WHERE
+    <if test="id != null">
+      ff.id != #{id} AND
+    </if>
+    ff.name = #{name}
+  </select>
+
+  <select id="retrieveAdminRegistrationInUseCount" resultType="int">
+    SELECT count(*)
+    FROM applications
+    WHERE admin_registration_forms_id = #{formId}
+  </select>
+
+  <select id="retrieveAdminUserInUseByCount" resultType="int">
+    SELECT count(*)
+    FROM tenants
+    WHERE admin_user_forms_id = #{formId}
+  </select>
+
+  <select id="retrieveRegistrationInUseCount" resultType="int">
+    SELECT count(*)
+    FROM applications
+    WHERE forms_id = #{formId}
+  </select>
+
+  <select id="retrieveSelfServiceUserInUseCount" resultType="int">
+    SELECT count(*)
+    FROM applications
+    WHERE self_service_user_forms_id = #{formId}
+  </select>
+
+  <update id="update">
+    UPDATE forms
+    SET
+      data                = #{dataToDatabase},
+      last_update_instant = #{lastUpdateInstant},
+      name                = #{name}
+    WHERE id = #{id}
+  </update>
+
+  <update id="updateField">
+    UPDATE form_fields
+    SET
+      data                = #{dataToDatabase},
+      last_update_instant = #{lastUpdateInstant},
+      name                = #{name}
+    WHERE id = #{id}
+  </update>
+
+  <delete id="delete">
+    DELETE
+    FROM forms
+    WHERE id = #{id}
+  </delete>
+
+  <delete id="deleteField">
+    DELETE
+    FROM form_fields
+    WHERE id = #{id}
+  </delete>
+
+  <delete id="deleteFormSteps">
+    DELETE
+    FROM form_steps
+    WHERE forms_id = #{formId}
+  </delete>
+
+</mapper>
+

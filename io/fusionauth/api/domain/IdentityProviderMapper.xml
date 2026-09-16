@@ -1,0 +1,664 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.IdentityProviderMapper">
+  <resultMap id="IdentityProvider" type="io.fusionauth.domain.provider.BaseIdentityProvider">
+    <id property="id" column="idp_id"/>
+    <result property="dataFromDatabase" column="idp_data"/>
+    <result property="enabled" column="idp_enabled"/>
+    <result property="name" column="idp_name"/>
+    <result property="insertInstant" column="idp_insert_instant"/>
+    <result property="lastUpdateInstant" column="idp_last_update_instant"/>
+    <result property="lambdaConfiguration.reconcileId" column="idp_reconcile_lambdas_id"/>
+    <result property="source" column="idp_source"/>
+    <result property="tenantId" column="idp_tenants_id"/>
+    <discriminator javaType="java.lang.String" column="idp_type">
+      <case value="Apple" resultMap="_AppleIdentityProvider"/>
+      <case value="EpicGames" resultMap="_EpicGamesIdentityProvider"/>
+      <case value="ExternalJWT" resultMap="_ExternalJWTIdentityProvider"/>
+      <case value="Facebook" resultMap="_FacebookIdentityProvider"/>
+      <case value="Google" resultMap="_GoogleIdentityProvider"/>
+      <case value="HYPR" resultMap="_HYPRIdentityProvider"/>
+      <case value="LinkedIn" resultMap="_LinkedInIdentityProvider"/>
+      <case value="Nintendo" resultMap="_NintendoIdentityProvider"/>
+      <case value="OpenIDConnect" resultMap="_OpenIDConnectIdentityProvider"/>
+      <case value="SAMLv2" resultMap="_SAMLv2IdentityProvider"/>
+      <case value="SAMLv2IdPInitiated" resultMap="_SAMLv2IdPInitiatedIdentityProvider"/>
+      <case value="SonyPSN" resultMap="_SonyPSNIdentityProvider"/>
+      <case value="Steam" resultMap="_SteamIdentityProvider"/>
+      <case value="Twitch" resultMap="_TwitchIdentityProvider"/>
+      <case value="Twitter" resultMap="_TwitterIdentityProvider"/>
+      <case value="Xbox" resultMap="_XboxIdentityProvider"/>
+    </discriminator>
+  </resultMap>
+
+  <!--  If you want to retrieve columns that are not in the BaseIdentityProvider class, you will want to build a new result map with the extra fields-->
+  <resultMap id="AppleIdentityProvider" type="io.fusionauth.domain.provider.AppleIdentityProvider" extends="IdentityProvider">
+    <result property="keyId" column="idp_keys_id"/>
+  </resultMap>
+
+  <!--  If you want to retrieve columns that are not in the BaseIdentityProvider class, you will want to build a new result map with the extra fields-->
+  <resultMap id="SAMLv2IdentityProvider" type="io.fusionauth.domain.provider.SAMLv2IdentityProvider" extends="IdentityProvider">
+    <result property="keyId" column="idp_keys_id"/>
+    <result property="requestSigningKeyId" column="idp_request_signing_keys_id"/>
+  </resultMap>
+
+  <!--  If you want to retrieve columns that are not in the BaseIdentityProvider class, you will want to build a new result map with the extra fields-->
+  <resultMap id="SAMLv2IdPInitiatedIdentityProvider" type="io.fusionauth.domain.provider.SAMLv2IdPInitiatedIdentityProvider" extends="IdentityProvider">
+    <result property="keyId" column="idp_keys_id"/>
+  </resultMap>
+
+  <!--  Result map definitions for the special MyBatis sub class for the Identity Provider -->
+  <resultMap id="_AppleIdentityProvider" type="io.fusionauth.api.domain.mybatis._AppleIdentityProvider" extends="AppleIdentityProvider">
+    <collection property="configurations" column="idp_id" fetchType="eager" select="retrieveAppleApplicationConfigurations"/>
+    <collection property="tenantConfigurations" column="idp_id" fetchType="eager" select="retrieveTenantConfigurations"/>
+  </resultMap>
+
+  <resultMap id="_EpicGamesIdentityProvider" type="io.fusionauth.api.domain.mybatis._EpicGamesIdentityProvider" extends="IdentityProvider">
+    <collection property="configurations" column="idp_id" fetchType="eager" select="retrieveEpicGamesApplicationConfigurations"/>
+    <collection property="tenantConfigurations" column="idp_id" fetchType="eager" select="retrieveTenantConfigurations"/>
+  </resultMap>
+
+  <resultMap id="_ExternalJWTIdentityProvider" type="io.fusionauth.api.domain.mybatis._ExternalJWTIdentityProvider" extends="IdentityProvider">
+    <result property="defaultKeyId" column="idp_keys_id"/>
+    <!--
+      Verification key ids are loaded via the single LEFT JOIN on identity_providers_verification_keys in the "select"
+      sql fragment (mirroring Tenant/Application), not a separate per-IdP select. The joined keys_id column is
+      partitioned by type using a CASE-aliased column plus notNullColumn, so only ExternalJwtVerification rows
+      contribute here. Because the primary IdP row also fans out across the joined verification-key rows, the nested
+      <id> dedupes repeats so each key appears once. Read queries order the joined rows by
+      "ipvk.type, ipvk.is_default DESC, ipvk.keys_id" so the default key is the first element of the list.
+    -->
+    <collection property="verificationKeyIds" ofType="java.util.UUID" notNullColumn="idp_external_jwt_verification_keys_id">
+      <id column="idp_external_jwt_verification_keys_id"/>
+      <result column="idp_external_jwt_verification_keys_id"/>
+    </collection>
+    <collection property="configurations" column="idp_id" fetchType="eager" select="retrieveExternalApplicationConfigurations"/>
+    <collection property="domains" column="idp_id" fetchType="eager" select="retrieveDomains"/>
+    <collection property="tenantConfigurations" column="idp_id" fetchType="eager" select="retrieveTenantConfigurations"/>
+  </resultMap>
+
+  <resultMap id="_FacebookIdentityProvider" type="io.fusionauth.api.domain.mybatis._FacebookIdentityProvider" extends="IdentityProvider">
+    <collection property="configurations" column="idp_id" fetchType="eager" select="retrieveFacebookApplicationConfigurations"/>
+    <collection property="tenantConfigurations" column="idp_id" fetchType="eager" select="retrieveTenantConfigurations"/>
+  </resultMap>
+
+  <resultMap id="_GoogleIdentityProvider" type="io.fusionauth.api.domain.mybatis._GoogleIdentityProvider" extends="IdentityProvider">
+    <collection property="configurations" column="idp_id" fetchType="eager" select="retrieveGoogleApplicationConfigurations"/>
+    <collection property="tenantConfigurations" column="idp_id" fetchType="eager" select="retrieveTenantConfigurations"/>
+  </resultMap>
+
+  <resultMap id="_HYPRIdentityProvider" type="io.fusionauth.api.domain.mybatis._HYPRIdentityProvider" extends="IdentityProvider">
+    <collection property="configurations" column="idp_id" fetchType="eager" select="retrieveHYPRApplicationConfigurations"/>
+    <collection property="tenantConfigurations" column="idp_id" fetchType="eager" select="retrieveTenantConfigurations"/>
+  </resultMap>
+
+  <resultMap id="_LinkedInIdentityProvider" type="io.fusionauth.api.domain.mybatis._LinkedInIdentityProvider" extends="IdentityProvider">
+    <collection property="configurations" column="idp_id" fetchType="eager" select="retrieveLinkedInApplicationConfigurations"/>
+    <collection property="tenantConfigurations" column="idp_id" fetchType="eager" select="retrieveTenantConfigurations"/>
+  </resultMap>
+
+  <resultMap id="_NintendoIdentityProvider" type="io.fusionauth.api.domain.mybatis._NintendoIdentityProvider" extends="IdentityProvider">
+    <collection property="configurations" column="idp_id" fetchType="eager" select="retrieveNintendoApplicationConfigurations"/>
+    <collection property="tenantConfigurations" column="idp_id" fetchType="eager" select="retrieveTenantConfigurations"/>
+  </resultMap>
+
+  <resultMap id="_OpenIDConnectIdentityProvider" type="io.fusionauth.api.domain.mybatis._OpenIdConnectIdentityProvider" extends="IdentityProvider">
+    <collection property="configurations" column="idp_id" fetchType="eager" select="retrieveOpenIDConnectApplicationConfigurations"/>
+    <collection property="domains" column="idp_id" fetchType="eager" select="retrieveDomains"/>
+    <collection property="tenantConfigurations" column="idp_id" fetchType="eager" select="retrieveTenantConfigurations"/>
+  </resultMap>
+
+  <resultMap id="_SAMLv2IdentityProvider" type="io.fusionauth.api.domain.mybatis._SAMLv2IdentityProvider" extends="SAMLv2IdentityProvider">
+    <!-- See the ExternalJWT verification-key collection above for an explanation of the joined CASE-partitioned, deduped, ordered load. SAML rows are partitioned by Samlv2ResponseVerification. -->
+    <collection property="verificationKeyIds" ofType="java.util.UUID" notNullColumn="idp_samlv2_verification_keys_id">
+      <id column="idp_samlv2_verification_keys_id"/>
+      <result column="idp_samlv2_verification_keys_id"/>
+    </collection>
+    <collection property="configurations" column="idp_id" fetchType="eager" select="retrieveSAMLv2ApplicationConfigurations"/>
+    <collection property="domains" column="idp_id" fetchType="eager" select="retrieveDomains"/>
+    <collection property="tenantConfigurations" column="idp_id" fetchType="eager" select="retrieveTenantConfigurations"/>
+  </resultMap>
+
+  <resultMap id="_SAMLv2IdPInitiatedIdentityProvider" type="io.fusionauth.api.domain.mybatis._SAMLv2IdPInitiatedIdentityProvider" extends="SAMLv2IdPInitiatedIdentityProvider">
+    <!-- See the ExternalJWT verification-key collection above for an explanation of the joined CASE-partitioned, deduped, ordered load. SAML rows are partitioned by Samlv2ResponseVerification. -->
+    <collection property="verificationKeyIds" ofType="java.util.UUID" notNullColumn="idp_samlv2_verification_keys_id">
+      <id column="idp_samlv2_verification_keys_id"/>
+      <result column="idp_samlv2_verification_keys_id"/>
+    </collection>
+    <collection property="configurations" column="idp_id" fetchType="eager" select="retrieveSAMLv2IdPInitiatedApplicationConfigurations"/>
+    <collection property="tenantConfigurations" column="idp_id" fetchType="eager" select="retrieveTenantConfigurations"/>
+  </resultMap>
+
+  <resultMap id="_SonyPSNIdentityProvider" type="io.fusionauth.api.domain.mybatis._SonyPSNIdentityProvider" extends="IdentityProvider">
+    <collection property="configurations" column="idp_id" fetchType="eager" select="retrieveSonyPSNApplicationConfigurations"/>
+    <collection property="tenantConfigurations" column="idp_id" fetchType="eager" select="retrieveTenantConfigurations"/>
+  </resultMap>
+
+  <resultMap id="_SteamIdentityProvider" type="io.fusionauth.api.domain.mybatis._SteamIdentityProvider" extends="IdentityProvider">
+    <collection property="configurations" column="idp_id" fetchType="eager" select="retrieveSteamApplicationConfigurations"/>
+    <collection property="tenantConfigurations" column="idp_id" fetchType="eager" select="retrieveTenantConfigurations"/>
+  </resultMap>
+
+  <resultMap id="_TwitchIdentityProvider" type="io.fusionauth.api.domain.mybatis._TwitchIdentityProvider" extends="IdentityProvider">
+    <collection property="configurations" column="idp_id" fetchType="eager" select="retrieveTwitchApplicationConfigurations"/>
+    <collection property="tenantConfigurations" column="idp_id" fetchType="eager" select="retrieveTenantConfigurations"/>
+  </resultMap>
+
+  <resultMap id="_TwitterIdentityProvider" type="io.fusionauth.api.domain.mybatis._TwitterIdentityProvider" extends="IdentityProvider">
+    <collection property="configurations" column="idp_id" fetchType="eager" select="retrieveTwitterApplicationConfigurations"/>
+    <collection property="tenantConfigurations" column="idp_id" fetchType="eager" select="retrieveTenantConfigurations"/>
+  </resultMap>
+
+  <resultMap id="_XboxIdentityProvider" type="io.fusionauth.api.domain.mybatis._XboxIdentityProvider" extends="IdentityProvider">
+    <collection property="configurations" column="idp_id" fetchType="eager" select="retrieveXboxApplicationConfigurations"/>
+    <collection property="tenantConfigurations" column="idp_id" fetchType="eager" select="retrieveTenantConfigurations"/>
+  </resultMap>
+
+  <!--  Identity Provider Application Configuration Stuff -->
+  <resultMap id="_AppleApplicationIdentityProviderConfiguration" type="io.fusionauth.api.domain.mybatis._AppleIdentityProvider$_AppleApplicationConfiguration">
+    <result property="applicationId" column="idp_app_applications_id"/>
+    <result property="dataFromDatabase" column="idp_app_data"/>
+    <result property="enabled" column="idp_app_enabled"/>
+    <result property="keyId" column="idp_app_keys_id"/>
+  </resultMap>
+
+  <resultMap id="_EpicGamesApplicationIdentityProviderConfiguration" type="io.fusionauth.api.domain.mybatis._EpicGamesIdentityProvider$_EpicGamesApplicationConfiguration">
+    <result property="applicationId" column="idp_app_applications_id"/>
+    <result property="dataFromDatabase" column="idp_app_data"/>
+    <result property="enabled" column="idp_app_enabled"/>
+  </resultMap>
+
+  <resultMap id="_ExternalJWTApplicationIdentityProviderConfiguration" type="io.fusionauth.api.domain.mybatis._ExternalJWTIdentityProvider$_ExternalJWTApplicationConfiguration">
+    <result property="applicationId" column="idp_app_applications_id"/>
+    <result property="dataFromDatabase" column="idp_app_data"/>
+    <result property="enabled" column="idp_app_enabled"/>
+  </resultMap>
+
+  <resultMap id="_FacebookApplicationIdentityProviderConfiguration" type="io.fusionauth.api.domain.mybatis._FacebookIdentityProvider$_FacebookApplicationConfiguration">
+    <result property="applicationId" column="idp_app_applications_id"/>
+    <result property="dataFromDatabase" column="idp_app_data"/>
+    <result property="enabled" column="idp_app_enabled"/>
+  </resultMap>
+
+  <resultMap id="_GoogleApplicationIdentityProviderConfiguration" type="io.fusionauth.api.domain.mybatis._GoogleIdentityProvider$_GoogleApplicationConfiguration">
+    <result property="applicationId" column="idp_app_applications_id"/>
+    <result property="dataFromDatabase" column="idp_app_data"/>
+    <result property="enabled" column="idp_app_enabled"/>
+  </resultMap>
+
+  <resultMap id="_HYPRApplicationIdentityProviderConfiguration" type="io.fusionauth.api.domain.mybatis._HYPRIdentityProvider$_HYPRApplicationConfiguration">
+    <result property="applicationId" column="idp_app_applications_id"/>
+    <result property="dataFromDatabase" column="idp_app_data"/>
+    <result property="enabled" column="idp_app_enabled"/>
+  </resultMap>
+
+  <resultMap id="_LinkedInApplicationIdentityProviderConfiguration" type="io.fusionauth.api.domain.mybatis._LinkedInIdentityProvider$_LinkedInApplicationConfiguration">
+    <result property="applicationId" column="idp_app_applications_id"/>
+    <result property="dataFromDatabase" column="idp_app_data"/>
+    <result property="enabled" column="idp_app_enabled"/>
+  </resultMap>
+
+  <resultMap id="_NintendoApplicationIdentityProviderConfiguration" type="io.fusionauth.api.domain.mybatis._NintendoIdentityProvider$_NintendoApplicationConfiguration">
+    <result property="applicationId" column="idp_app_applications_id"/>
+    <result property="dataFromDatabase" column="idp_app_data"/>
+    <result property="enabled" column="idp_app_enabled"/>
+  </resultMap>
+
+  <resultMap id="_OpenIDConnectApplicationIdentityProviderConfiguration" type="io.fusionauth.api.domain.mybatis._OpenIdConnectIdentityProvider$_OpenIDConnectApplicationConfiguration">
+    <result property="applicationId" column="idp_app_applications_id"/>
+    <result property="dataFromDatabase" column="idp_app_data"/>
+    <result property="enabled" column="idp_app_enabled"/>
+  </resultMap>
+
+  <resultMap id="_SAMLv2ApplicationIdentityProviderConfiguration" type="io.fusionauth.api.domain.mybatis._SAMLv2IdentityProvider$_SAMLv2ApplicationConfiguration">
+    <result property="applicationId" column="idp_app_applications_id"/>
+    <result property="dataFromDatabase" column="idp_app_data"/>
+    <result property="enabled" column="idp_app_enabled"/>
+  </resultMap>
+
+  <resultMap id="_SAMLv2IdPInitiatedApplicationIdentityProviderConfiguration" type="io.fusionauth.api.domain.mybatis._SAMLv2IdPInitiatedIdentityProvider$_SAMLv2IdPInitiatedApplicationConfiguration">
+    <result property="applicationId" column="idp_app_applications_id"/>
+    <result property="dataFromDatabase" column="idp_app_data"/>
+    <result property="enabled" column="idp_app_enabled"/>
+  </resultMap>
+
+  <resultMap id="_SonyPSNApplicationIdentityProviderConfiguration" type="io.fusionauth.api.domain.mybatis._SonyPSNIdentityProvider$_SonyPSNApplicationConfiguration">
+    <result property="applicationId" column="idp_app_applications_id"/>
+    <result property="dataFromDatabase" column="idp_app_data"/>
+    <result property="enabled" column="idp_app_enabled"/>
+  </resultMap>
+
+  <resultMap id="_SteamApplicationIdentityProviderConfiguration" type="io.fusionauth.api.domain.mybatis._SteamIdentityProvider$_SteamApplicationConfiguration">
+    <result property="applicationId" column="idp_app_applications_id"/>
+    <result property="dataFromDatabase" column="idp_app_data"/>
+    <result property="enabled" column="idp_app_enabled"/>
+  </resultMap>
+
+  <resultMap id="_TwitchApplicationIdentityProviderConfiguration" type="io.fusionauth.api.domain.mybatis._TwitchIdentityProvider$_TwitchApplicationConfiguration">
+    <result property="applicationId" column="idp_app_applications_id"/>
+    <result property="dataFromDatabase" column="idp_app_data"/>
+    <result property="enabled" column="idp_app_enabled"/>
+  </resultMap>
+
+  <resultMap id="_TwitterApplicationIdentityProviderConfiguration" type="io.fusionauth.api.domain.mybatis._TwitterIdentityProvider$_TwitterApplicationConfiguration">
+    <result property="applicationId" column="idp_app_applications_id"/>
+    <result property="dataFromDatabase" column="idp_app_data"/>
+    <result property="enabled" column="idp_app_enabled"/>
+  </resultMap>
+
+  <resultMap id="_XboxApplicationIdentityProviderConfiguration" type="io.fusionauth.api.domain.mybatis._XboxIdentityProvider$_XboxApplicationConfiguration">
+    <result property="applicationId" column="idp_app_applications_id"/>
+    <result property="dataFromDatabase" column="idp_app_data"/>
+    <result property="enabled" column="idp_app_enabled"/>
+  </resultMap>
+
+  <resultMap id="_TenantIdentityProviderConfiguration" type="io.fusionauth.api.domain.mybatis._IdentityProviderTenantConfiguration">
+    <result property="tenantId" column="idp_tenant_tenants_id"/>
+    <result property="dataFromDatabase" column="idp_tenant_data"/>
+  </resultMap>
+
+  <sql id="select">
+    SELECT
+      idp.id                          AS idp_id,
+      idp.tenants_id                  AS idp_tenants_id,
+      idp.data                        AS idp_data,
+      idp.enabled                     AS idp_enabled,
+      idp.name                        AS idp_name,
+      idp.insert_instant              AS idp_insert_instant,
+      idp.last_update_instant         AS idp_last_update_instant,
+      idp.keys_id                     AS idp_keys_id,
+      idp.reconcile_lambdas_id        AS idp_reconcile_lambdas_id,
+      idp.request_signing_keys_id     AS idp_request_signing_keys_id,
+      idp.source                      AS idp_source,
+      idp.type                                                                 AS idp_type,
+      CASE WHEN ipvk.type = 'ExternalJwtVerification' THEN ipvk.keys_id END    AS idp_external_jwt_verification_keys_id,
+      CASE WHEN ipvk.type = 'Samlv2ResponseVerification' THEN ipvk.keys_id END AS idp_samlv2_verification_keys_id
+    FROM identity_providers AS idp
+           LEFT OUTER JOIN identity_providers_verification_keys AS ipvk
+    ON idp.id = ipvk.identity_providers_id
+  </sql>
+
+  <sql id="selectApplicationIdentityConfigurations">
+    SELECT
+      idp_app.identity_providers_id AS idp_app_identity_providers_id,
+      idp_app.applications_id       AS idp_app_applications_id,
+      idp_app.data                  AS idp_app_data,
+      idp_app.enabled               AS idp_app_enabled,
+      idp_app.keys_id               AS idp_app_keys_id
+    FROM identity_providers_applications AS idp_app
+  </sql>
+
+  <sql id="selectTenantIdentityConfigurations">
+    SELECT
+      idp_tenant.identity_providers_id      AS idp_tenant_identity_providers_id,
+      idp_tenant.tenants_id                 AS idp_tenant_tenants_id,
+      idp_tenant.data                       AS idp_tenant_data
+      FROM identity_providers_tenants AS idp_tenant
+  </sql>
+
+  <insert id="create">
+    INSERT INTO identity_providers
+    <choose>
+      <when test="type.name().equals('Apple')">
+        (id, tenants_id, data, enabled, name, keys_id, reconcile_lambdas_id, source, type, insert_instant, last_update_instant) VALUES (#{id}, #{tenantId}, #{dataToDatabase}, #{enabled}, #{name}, #{keyId}, #{lambdaConfiguration.reconcileId}, #{source}, #{type}, #{insertInstant}, #{lastUpdateInstant})
+      </when>
+      <when test="type.name().equals('SAMLv2')">
+        (id, tenants_id, data, enabled, name, keys_id, reconcile_lambdas_id, request_signing_keys_id, source, type, insert_instant, last_update_instant) VALUES (#{id}, #{tenantId}, #{dataToDatabase}, #{enabled}, #{name}, #{keyId}, #{lambdaConfiguration.reconcileId}, #{requestSigningKeyId}, #{source}, #{type}, #{insertInstant}, #{lastUpdateInstant})
+      </when>
+      <when test="type.name().equals('SAMLv2IdPInitiated')">
+        (id, tenants_id, data, enabled, name, keys_id, reconcile_lambdas_id, source, type, insert_instant, last_update_instant) VALUES (#{id}, #{tenantId}, #{dataToDatabase}, #{enabled}, #{name}, #{keyId}, #{lambdaConfiguration.reconcileId}, #{source}, #{type}, #{insertInstant}, #{lastUpdateInstant})
+      </when>
+      <when test="type.name().equals('ExternalJWT')">
+        (id, tenants_id, data, enabled, name, keys_id, reconcile_lambdas_id, source, type, insert_instant, last_update_instant) VALUES (#{id}, #{tenantId}, #{dataToDatabase}, #{enabled}, #{name}, #{defaultKeyId}, #{lambdaConfiguration.reconcileId}, #{source}, #{type}, #{insertInstant}, #{lastUpdateInstant})
+      </when>
+      <otherwise>
+        (id, tenants_id, data, enabled, name, reconcile_lambdas_id, source, type, insert_instant, last_update_instant) VALUES (#{id}, #{tenantId}, #{dataToDatabase}, #{enabled}, #{name}, #{lambdaConfiguration.reconcileId}, #{source}, #{type}, #{insertInstant}, #{lastUpdateInstant})
+      </otherwise>
+    </choose>
+  </insert>
+
+  <update id="update">
+    UPDATE identity_providers SET
+    data = #{dataToDatabase},
+    enabled = #{enabled},
+    name = #{name},
+    last_update_instant = #{lastUpdateInstant},
+    <if test="type.name().equals('Apple') or type.name().equals('SAMLv2') or type.name().equals('SAMLv2IdPInitiated')">
+      keys_id = #{keyId},
+    </if>
+    <if test="type.name().equals('ExternalJWT')">
+      keys_id = #{defaultKeyId},
+    </if>
+    <if test="type.name().equals('SAMLv2')">
+      request_signing_keys_id = #{requestSigningKeyId},
+    </if>
+    reconcile_lambdas_id = #{lambdaConfiguration.reconcileId}
+    WHERE id = #{id}
+  </update>
+
+  <insert id="createFederatedDomains">
+    INSERT INTO federated_domains (identity_providers_id, domain, tenants_id) VALUES
+    <foreach collection="domains" item="domain" separator=",">
+      (#{id}, #{domain}, #{tenantId})
+    </foreach>
+  </insert>
+
+  <insert id="createApplicationConfiguration">
+    INSERT INTO identity_providers_applications (applications_id, identity_providers_id, data, enabled
+    <if test="type.name().equals('Apple')">
+      , keys_id
+    </if>
+    ) VALUES
+    <foreach collection="applicationConfigurations" index="applicationId" item="config" separator=",">
+      (#{applicationId}, #{id}, #{config.dataToDatabase}, #{config.enabled}
+      <if test="type.name().equals('Apple')">
+        , #{config.keyId}
+      </if>
+      )
+    </foreach>
+  </insert>
+
+  <insert id="createTenantConfiguration">
+    INSERT INTO identity_providers_tenants (tenants_id, identity_providers_id, data) VALUES
+    <foreach collection="tenantConfigurations" index="tenantId" item="config" separator=",">
+      (#{tenantId}, #{id}, #{config.dataToDatabase})
+    </foreach>
+  </insert>
+
+  <insert id="createVerificationKeys">
+    INSERT INTO identity_providers_verification_keys (identity_providers_id, keys_id, type, is_default) VALUES
+    <foreach collection="keyIds" item="keyId" index="i" separator=",">
+      (#{identityProviderId}, #{keyId}, #{type}, ${i == 0})
+    </foreach>
+  </insert>
+
+  <select id="retrieveAll" resultMap="IdentityProvider">
+    <include refid="select"/>
+    <if test="tenantId != null">
+      WHERE idp.tenants_id = #{tenantId}
+    </if>
+    ORDER BY idp.insert_instant DESC, idp.id, ipvk.type, ipvk.is_default DESC, ipvk.keys_id
+  </select>
+
+  <select id="retrieveByCriteria" resultMap="IdentityProvider">
+    WITH ids AS (
+    SELECT idp.id
+    FROM identity_providers idp
+    <where>
+      <if test="name != null">
+        AND LOWER(idp.name) LIKE #{name}
+      </if>
+      <if test="source != null">
+        AND LOWER(idp.source) LIKE #{source}
+      </if>
+      <if test="tenantId != null">
+        AND idp.tenants_id = #{tenantId}
+      </if>
+      <if test="type != null">
+        AND idp.type LIKE #{type}
+      </if>
+      <if test="applicationId != null">
+        AND EXISTS (
+        SELECT 1
+        FROM identity_providers_applications a
+        WHERE a.identity_providers_id = idp.id
+        AND a.applications_id = #{applicationId}
+        AND enabled = TRUE
+        )
+      </if>
+    </where>
+    <if test="orderBy != null">
+      ORDER BY ${orderBy}
+    </if>
+    <if test="numberOfResults != null">
+      LIMIT #{numberOfResults}
+    </if>
+    <if test="startRow != null">
+      OFFSET #{startRow}
+    </if>
+    )
+    <include refid="select"/>
+    INNER JOIN ids ON ids.id = idp.id
+    <choose>
+      <when test="orderBy != null">
+        ORDER BY ${orderBy}, idp.id, ipvk.type, ipvk.is_default DESC, ipvk.keys_id
+      </when>
+      <otherwise>
+        ORDER BY idp.id, ipvk.type, ipvk.is_default DESC, ipvk.keys_id
+      </otherwise>
+    </choose>
+  </select>
+
+  <select id="retrieveById" resultMap="IdentityProvider">
+    <include refid="select"/>
+    WHERE idp.id = #{id}
+    <if test="tenantId != null">
+      AND idp.tenants_id = #{tenantId}
+    </if>
+    ORDER BY idp.id, ipvk.type, ipvk.is_default DESC, ipvk.keys_id
+  </select>
+
+  <select id="retrieveByIdForUpdate" resultMap="IdentityProvider">
+    <!--
+      Intentionally does NOT include the verification-key LEFT JOIN from the "select" fragment. This is a
+      lock-and-reload SELECT ... FOR UPDATE; Postgres does not permit FOR UPDATE against the nullable side of an outer
+      join (it would error or lock unintended rows), and Tenant has no FOR-UPDATE-with-join precedent to copy. The
+      verification keys are not needed to take the row lock and are loaded by the subsequent read query.
+
+      The two CASE-aliased verification-key columns are still selected as NULL literals so the shared "IdentityProvider"
+      resultMap can resolve its verificationKeyIds collection (its notNullColumn references these columns by name).
+      Selecting them as NULL keeps the collection empty here without the fan-out join.
+    -->
+    SELECT
+    idp.id AS idp_id,
+    idp.tenants_id AS idp_tenants_id,
+    idp.data AS idp_data,
+    idp.enabled AS idp_enabled,
+    idp.name AS idp_name,
+    idp.insert_instant AS idp_insert_instant,
+    idp.last_update_instant AS idp_last_update_instant,
+    idp.keys_id AS idp_keys_id,
+    idp.reconcile_lambdas_id AS idp_reconcile_lambdas_id,
+    idp.request_signing_keys_id AS idp_request_signing_keys_id,
+    idp.source AS idp_source,
+    idp.type AS idp_type,
+    NULL AS idp_external_jwt_verification_keys_id,
+    NULL AS idp_samlv2_verification_keys_id
+    FROM identity_providers AS idp
+    WHERE idp.id = #{id}
+    <if test="tenantId != null">
+      AND idp.tenants_id = #{tenantId}
+    </if>
+    <if test="existingLastUpdateInstant != null">
+      AND idp.last_update_instant = #{existingLastUpdateInstant}
+    </if>
+      FOR UPDATE
+  </select>
+
+  <select id="retrieveByName" resultMap="IdentityProvider">
+    <include refid="select"/>
+    WHERE idp.name = #{name}
+    <choose>
+      <when test="tenantId != null">
+        AND idp.tenants_id = #{tenantId}
+      </when>
+      <otherwise>
+        <!-- Only consider "tenants_id IS NULL" if tenantId was not provided. -->
+        <!-- This provides global IdPs with their own unique pool of names during validation. -->
+        AND idp.tenants_id IS NULL
+      </otherwise>
+    </choose>
+    ORDER BY idp.id, ipvk.type, ipvk.is_default DESC, ipvk.keys_id
+  </select>
+
+  <select id="retrieveCountByCriteria" resultType="int">
+    SELECT COUNT(*)
+    FROM identity_providers idp
+    <where>
+      <if test="name != null">
+        AND LOWER(idp.name) LIKE #{name}
+      </if>
+      <if test="source != null">
+        AND LOWER(idp.source) LIKE #{source}
+      </if>
+      <if test="tenantId != null">
+        AND idp.tenants_id = #{tenantId}
+      </if>
+      <if test="type != null">
+        AND idp.type LIKE #{type}
+      </if>
+      <if test="applicationId != null">
+        AND EXISTS (
+          SELECT 1
+          FROM identity_providers_applications a
+          WHERE a.identity_providers_id = idp.id
+            AND a.applications_id = #{applicationId}
+            AND enabled = TRUE
+        )
+      </if>
+    </where>
+  </select>
+
+  <select id="retrieveExisting" resultMap="IdentityProvider">
+    <include refid="select"/>
+    <!-- Search for other IdPs with the given name to avoid name collisions on update -->
+    WHERE idp.id != #{id}
+        AND idp.name = #{name}
+    <choose>
+      <when test="tenantId != null">
+        AND idp.tenants_id = #{tenantId}
+      </when>
+      <otherwise>
+        <!-- Only consider "tenants_id IS NULL" if tenantId was not provided. -->
+        <!-- This provides global IdPs with their own unique pool of names during validation. -->
+        AND idp.tenants_id IS NULL
+      </otherwise>
+    </choose>
+    ORDER BY idp.id, ipvk.type, ipvk.is_default DESC, ipvk.keys_id
+  </select>
+
+  <!-- Start of Application Configuration select statements -->
+  <select id="retrieveAppleApplicationConfigurations" resultMap="_AppleApplicationIdentityProviderConfiguration">
+    <include refid="selectApplicationIdentityConfigurations"/>
+    WHERE idp_app.identity_providers_id = #{idp_id}
+  </select>
+
+  <select id="retrieveEpicGamesApplicationConfigurations" resultMap="_EpicGamesApplicationIdentityProviderConfiguration">
+    <include refid="selectApplicationIdentityConfigurations"/>
+    WHERE idp_app.identity_providers_id = #{idp_id}
+  </select>
+
+  <select id="retrieveExternalApplicationConfigurations" resultMap="_ExternalJWTApplicationIdentityProviderConfiguration">
+    <include refid="selectApplicationIdentityConfigurations"/>
+    WHERE idp_app.identity_providers_id = #{idp_id}
+  </select>
+
+  <select id="retrieveFacebookApplicationConfigurations" resultMap="_FacebookApplicationIdentityProviderConfiguration">
+    <include refid="selectApplicationIdentityConfigurations"/>
+    WHERE idp_app.identity_providers_id = #{idp_id}
+  </select>
+
+  <select id="retrieveGoogleApplicationConfigurations" resultMap="_GoogleApplicationIdentityProviderConfiguration">
+    <include refid="selectApplicationIdentityConfigurations"/>
+    WHERE idp_app.identity_providers_id = #{idp_id}
+  </select>
+
+  <select id="retrieveHYPRApplicationConfigurations" resultMap="_HYPRApplicationIdentityProviderConfiguration">
+    <include refid="selectApplicationIdentityConfigurations"/>
+    WHERE idp_app.identity_providers_id = #{idp_id}
+  </select>
+
+  <select id="retrieveLinkedInApplicationConfigurations" resultMap="_LinkedInApplicationIdentityProviderConfiguration">
+    <include refid="selectApplicationIdentityConfigurations"/>
+    WHERE idp_app.identity_providers_id = #{idp_id}
+  </select>
+
+  <select id="retrieveNintendoApplicationConfigurations" resultMap="_NintendoApplicationIdentityProviderConfiguration">
+    <include refid="selectApplicationIdentityConfigurations"/>
+    WHERE idp_app.identity_providers_id = #{idp_id}
+  </select>
+
+  <select id="retrieveOpenIDConnectApplicationConfigurations" resultMap="_OpenIDConnectApplicationIdentityProviderConfiguration">
+    <include refid="selectApplicationIdentityConfigurations"/>
+    WHERE idp_app.identity_providers_id = #{idp_id}
+  </select>
+
+  <select id="retrieveSAMLv2ApplicationConfigurations" resultMap="_SAMLv2ApplicationIdentityProviderConfiguration">
+    <include refid="selectApplicationIdentityConfigurations"/>
+    WHERE idp_app.identity_providers_id = #{idp_id}
+  </select>
+
+  <select id="retrieveSAMLv2IdPInitiatedApplicationConfigurations" resultMap="_SAMLv2IdPInitiatedApplicationIdentityProviderConfiguration">
+    <include refid="selectApplicationIdentityConfigurations"/>
+    WHERE idp_app.identity_providers_id = #{idp_id}
+  </select>
+
+  <select id="retrieveSonyPSNApplicationConfigurations" resultMap="_SonyPSNApplicationIdentityProviderConfiguration">
+    <include refid="selectApplicationIdentityConfigurations"/>
+    WHERE idp_app.identity_providers_id = #{idp_id}
+  </select>
+
+  <select id="retrieveSteamApplicationConfigurations" resultMap="_SteamApplicationIdentityProviderConfiguration">
+    <include refid="selectApplicationIdentityConfigurations"/>
+    WHERE idp_app.identity_providers_id = #{idp_id}
+  </select>
+
+  <select id="retrieveTwitchApplicationConfigurations" resultMap="_TwitchApplicationIdentityProviderConfiguration">
+    <include refid="selectApplicationIdentityConfigurations"/>
+    WHERE idp_app.identity_providers_id = #{idp_id}
+  </select>
+
+  <select id="retrieveTwitterApplicationConfigurations" resultMap="_TwitterApplicationIdentityProviderConfiguration">
+    <include refid="selectApplicationIdentityConfigurations"/>
+    WHERE idp_app.identity_providers_id = #{idp_id}
+  </select>
+
+  <select id="retrieveXboxApplicationConfigurations" resultMap="_XboxApplicationIdentityProviderConfiguration">
+    <include refid="selectApplicationIdentityConfigurations"/>
+    WHERE idp_app.identity_providers_id = #{idp_id}
+  </select>
+  <!-- End of Application Configuration select statements -->
+
+  <!-- Tenant Configuration select statements -->
+  <select id="retrieveTenantConfigurations" resultMap="_TenantIdentityProviderConfiguration">
+    <include refid="selectTenantIdentityConfigurations"/>
+    WHERE idp_tenant.identity_providers_id = #{idp_id}
+  </select>
+  <!-- End of Tenant Configuration select statements -->
+
+  <select id="retrieveDomains" resultType="java.lang.String">
+    SELECT domain FROM federated_domains AS fd
+    WHERE fd.identity_providers_id = #{idp_id}
+  </select>
+
+  <select id="retrieveExistingDomains" resultType="java.lang.String">
+    SELECT domain from federated_domains AS fd
+    WHERE
+      fd.domain IN (
+      <foreach collection="domains" item="domain" separator=",">
+        #{domain}
+      </foreach>
+      )
+    <if test="id != null">
+      AND fd.identity_providers_id != #{id}
+    </if>
+    <choose>
+      <when test="tenantId != null">
+        AND tenants_id = #{tenantId}
+      </when>
+      <otherwise>
+        AND tenants_id IS NULL
+      </otherwise>
+    </choose>
+  </select>
+
+  <select id="retrieveByType" resultMap="IdentityProvider">
+    <include refid="select"/>
+    WHERE idp.type = #{type}
+    <if test="tenantId != null">
+      AND idp.tenants_id = #{tenantId}
+    </if>
+    ORDER BY idp.insert_instant DESC, idp.id, ipvk.type, ipvk.is_default DESC, ipvk.keys_id
+  </select>
+</mapper>

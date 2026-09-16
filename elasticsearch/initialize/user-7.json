@@ -1,0 +1,139 @@
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "exact_lower": {
+          "type": "custom",
+          "tokenizer": "keyword",
+          "filter": "lowercase"
+        }
+      }
+    },
+    "index": {
+      "number_of_shards": 5,
+      "number_of_replicas": 1
+    }
+  },
+  "mappings": {
+    "_source": {
+      "enabled": false
+    },
+    "properties": {
+      "birthDate": {
+        "type": "date"
+      },
+      "email": {
+        "type": "text",
+        "analyzer": "exact_lower",
+        "fielddata": true
+      },
+      "fullName": {
+        "type": "text",
+        "fielddata": true,
+        "fields": {
+          "exact": {
+            "analyzer": "exact_lower",
+            "type": "text"
+          }
+        }
+      },
+      "id": {
+        "type": "keyword"
+      },
+      "insertInstant": {
+        "type": "date"
+      },
+      "lastLoginInstant": {
+        "type": "date"
+      },
+      "lastUpdateInstant": {
+        "type": "date"
+      },
+      "legacyIdentifier": {
+        "type": "keyword"
+      },
+      "login": {
+        "type": "keyword"
+      },
+      "memberships": {
+        "type": "nested",
+        "include_in_parent": true,
+        "properties": {
+          "groupId": {
+            "type": "keyword"
+          },
+          "id": {
+            "type": "keyword"
+          },
+          "insertInstant": {
+            "type": "date"
+          },
+          "userId": {
+            "type": "keyword"
+          }
+        }
+      },
+      "passwordChangeRequired": {
+        "type": "boolean"
+      },
+      "parentEmail": {
+        "type": "text",
+        "analyzer": "exact_lower",
+        "fielddata": true
+      },
+      "phoneNumber": {
+        "type": "text",
+        "fielddata": true
+      },
+      "registrations": {
+        "type": "nested",
+        "include_in_parent": true,
+        "properties": {
+          "applicationId": {
+            "type": "keyword"
+          },
+          "id": {
+            "type": "keyword"
+          },
+          "insertInstant": {
+            "type": "date"
+          },
+          "lastLoginInstant": {
+            "type": "date"
+          },
+          "lastUpdateInstant": {
+            "type": "date"
+          },
+          "roles": {
+            "type": "keyword"
+          },
+          "verified": {
+            "type": "boolean"
+          },
+          "verifiedInstant": {
+            "type": "date"
+          }
+        }
+      },
+      "tenantId": {
+        "type": "keyword"
+      },
+      "username": {
+        "type": "text",
+        "fielddata": true,
+        "fields": {
+          "exact": {
+            "analyzer": "exact_lower",
+            "type": "text"
+          }
+        }
+      },
+      "verified": {
+        "type": "boolean"
+      },
+      "verifiedInstant": {
+        "type": "date"
+      }
+    }
+  }
+}

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c) 2026, FusionAuth, All Rights Reserved
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.APIKeyMapper">
+
+  <select id="retrieveByCriteria" resultMap="com.inversoft.authentication.api.domain.AuthenticationKeyMapper.AuthenticationKey">
+    <include refid="com.inversoft.authentication.api.domain.AuthenticationKeyMapper.select"/>
+    <where>
+      k.id != (SELECT internal_authentication_keys_id FROM instance LIMIT 1)
+      <if test="nameOrDescription != null">
+        AND (
+        LOWER(k.name) LIKE #{nameOrDescription}
+        OR
+        <if test="_databaseId == 'mysql'">
+          LOWER(k.meta_data ->> '$.attributes.description') LIKE #{nameOrDescription}
+        </if>
+        <if test="_databaseId == 'postgresql'">
+          LOWER(k.meta_data::JSONB #>> '{attributes, description}') LIKE #{nameOrDescription}
+        </if>
+        )
+      </if>
+      <if test="key != null">
+        AND LOWER(k.key_value) LIKE #{key}
+      </if>
+      <if test="keyManager != null">
+        AND k.key_manager = #{keyManager}
+      </if>
+      <if test="tenantId != null">
+        AND k.tenants_id = #{tenantId}
+      </if>
+      <if test="expirationStart != null">
+        AND expiration_instant &gt;= #{expirationStart}
+      </if>
+      <if test="expirationEnd != null">
+        AND expiration_instant &lt;= #{expirationEnd}
+      </if>
+    </where>
+    <if test="orderBy != null">
+      ORDER BY ${orderBy}
+    </if>
+    <if test="numberOfResults != null">
+      LIMIT #{numberOfResults}
+    </if>
+    <if test="startRow != null">
+      OFFSET #{startRow}
+    </if>
+  </select>
+
+  <select id="retrieveCountByCriteria" resultType="int">
+    SELECT COUNT(*)
+    FROM authentication_keys AS k
+    <where>
+      k.id != (SELECT internal_authentication_keys_id FROM instance LIMIT 1)
+      <if test="nameOrDescription != null">
+        AND (
+        LOWER(k.name) LIKE #{nameOrDescription}
+        OR
+        <if test="_databaseId == 'mysql'">
+          LOWER(k.meta_data ->> '$.attributes.description') LIKE #{nameOrDescription}
+        </if>
+        <if test="_databaseId == 'postgresql'">
+          LOWER(k.meta_data::JSONB #>> '{attributes, description}') LIKE #{nameOrDescription}
+        </if>
+        )
+      </if>
+      <if test="key != null">
+        AND LOWER(k.key_value) LIKE #{key}
+      </if>
+      <if test="keyManager != null">
+        AND k.key_manager = #{keyManager}
+      </if>
+      <if test="tenantId != null">
+        AND k.tenants_id = #{tenantId}
+      </if>
+      <if test="expirationStart != null">
+        AND expiration_instant &gt;= #{expirationStart}
+      </if>
+      <if test="expirationEnd != null">
+        AND expiration_instant &lt;= #{expirationEnd}
+      </if>
+    </where>
+  </select>
+</mapper>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c) 2019, FusionAuth, All Rights Reserved
+  -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.FamilyMapper">
+  <resultMap id="FamilyMember" type="io.fusionauth.domain.FamilyMember">
+    <result property="dataFromDatabase" column="f_data"/>
+    <result property="insertInstant" column="f_insert_instant"/>
+    <result property="lastUpdateInstant" column="f_last_update_instant"/>
+    <result property="owner" column="f_owner"/>
+    <result property="role" column="f_role"/>
+    <result property="userId" column="f_users_id"/>
+  </resultMap>
+  <resultMap id="Family" type="io.fusionauth.domain.Family">
+    <result property="id" column="f_family_id"/>
+    <collection property="members" column="f_family_id" fetchType="eager" select="retrieveFamilyById" />
+  </resultMap>
+
+  <sql id="select">
+    SELECT
+    f.data                AS f_data,
+    f.insert_instant      AS f_insert_instant,
+    f.last_update_instant AS f_last_update_instant,
+    f.owner               AS f_owner,
+    f.role                AS f_role,
+    f.users_id            AS f_users_id
+    FROM families AS f
+  </sql>
+
+  <select id="retrieveByUserId" resultMap="Family">
+    SELECT DISTINCT f.family_id AS f_family_id FROM families f WHERE f.users_id = #{userId}
+  </select>
+
+  <select id="retrieveFamilyById" resultMap="FamilyMember">
+    <include refid="select"/>
+    WHERE f.family_id = #{familyId}
+  </select>
+
+  <select id="retrieveMemberByUserId" resultMap="FamilyMember">
+    <include refid="select"/>
+    WHERE f.users_id = #{userId}
+  </select>
+
+  <insert id="upsertMember" databaseId="mysql">
+    INSERT INTO families (data, family_id, insert_instant, last_update_instant, owner, role, users_id) VALUES (#{familyMember.dataToDatabase}, #{familyId}, #{familyMember.insertInstant}, #{familyMember.lastUpdateInstant}, #{familyMember.owner}, #{familyMember.role}, #{familyMember.userId})
+    ON DUPLICATE KEY UPDATE data = #{familyMember.dataToDatabase}, owner = #{familyMember.owner}, role = #{familyMember.role}, last_update_instant = #{familyMember.lastUpdateInstant}
+  </insert>
+
+  <insert id="upsertMember" databaseId="postgresql">
+    INSERT INTO families (data, family_id, insert_instant, last_update_instant, owner, role, users_id) VALUES (#{familyMember.dataToDatabase}, #{familyId}, #{familyMember.insertInstant}, #{familyMember.lastUpdateInstant}, #{familyMember.owner}, #{familyMember.role}, #{familyMember.userId})
+    ON CONFLICT (family_id, users_id) DO UPDATE SET data = #{familyMember.dataToDatabase}, owner = #{familyMember.owner}, role = #{familyMember.role}, last_update_instant = #{familyMember.lastUpdateInstant}
+  </insert>
+</mapper>

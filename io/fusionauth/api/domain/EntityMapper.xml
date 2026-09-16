@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.EntityMapper">
+  <resultMap id="EntityTypeBase" type="io.fusionauth.domain.EntityType">
+    <id property="id" column="et_id"/>
+    <result property="dataFromDatabase" column="et_data"/>
+    <result property="name" column="et_name"/>
+    <result property="insertInstant" column="et_insert_instant"/>
+    <result property="jwtConfiguration.accessTokenKeyId" column="et_access_token_signing_keys_id"/>
+    <result property="lastUpdateInstant" column="et_last_update_instant"/>
+  </resultMap>
+
+  <resultMap id="EntityType" type="io.fusionauth.domain.EntityType" extends="EntityTypeBase">
+    <collection property="permissions" resultMap="EntityTypePermission"/>
+    <collection property="jwtConfiguration.accessTokenVerificationKeyIds" ofType="java.util.UUID" notNullColumn="et_access_token_verification_keys_id">
+      <id column="et_access_token_verification_keys_id"/>
+      <result column="et_access_token_verification_keys_id"/>
+    </collection>
+  </resultMap>
+
+  <resultMap id="EntityTypePermission" type="io.fusionauth.domain.EntityTypePermission">
+    <id property="id" column="etp_id"/>
+    <result property="dataFromDatabase" column="etp_data"/>
+    <result property="description" column="etp_description"/>
+    <result property="entityTypeId" column="etp_entity_types_id"/>
+    <result property="insertInstant" column="etp_insert_instant"/>
+    <result property="isDefault" column="etp_is_default"/>
+    <result property="lastUpdateInstant" column="etp_last_update_instant"/>
+    <result property="name" column="etp_name"/>
+  </resultMap>
+
+  <resultMap id="Entity" type="io.fusionauth.domain.Entity">
+    <id property="id" column="e_id"/>
+    <result property="dataFromDatabase" column="e_data"/>
+    <result property="clientId" column="e_client_id"/>
+    <result property="clientSecret" column="e_client_secret"/>
+    <result property="insertInstant" column="e_insert_instant"/>
+    <result property="isDefault" column="e_is_default"/>
+    <result property="lastUpdateInstant" column="e_last_update_instant"/>
+    <result property="name" column="e_name"/>
+    <result property="parentId" column="e_parent_id"/>
+    <result property="tenantId" column="e_tenants_id"/>
+    <association property="type" resultMap="EntityType"/>
+  </resultMap>
+
+  <resultMap id="EntityGrant" type="io.fusionauth.domain.EntityGrant">
+    <id property="id" column="eg_id"/>
+    <result property="dataFromDatabase" column="eg_dataFromDatabase"/>
+    <result property="insertInstant" column="eg_insertInstant"/>
+    <result property="lastUpdateInstant" column="eg_lastUpdateInstant"/>
+    <result property="recipientEntityId" column="eg_recipientEntityId"/>
+    <result property="userId" column="eg_userId"/>
+    <association property="entity" resultMap="Entity"/>
+    <collection property="permissions" ofType="string" javaType="list">
+      <result column="eg_permissions"/>
+    </collection>
+  </resultMap>
+
+<!-- Only used in combination with 'retrieveEntityForReindex' custom result handlers.
+     NOTE: If we ever add a collection hanging off entity, an ORDER BY clause inretrieveEntitiesForReindex will be required
+     because of resultOrdered="true"
+  -->
+  <sql id="selectForReindex">
+        SELECT
+        e.id                            AS e_id,
+        e.client_id                     AS e_client_id,
+        e.client_secret                 AS e_client_secret,
+        e.data                          AS e_data,
+        e.insert_instant                AS e_insert_instant,
+        e.last_update_instant           AS e_last_update_instant,
+        e.name                          AS e_name,
+        e.parent_id                     AS e_parent_id,
+        e.tenants_id                    AS e_tenants_id,
+        et.id                           AS et_id,
+        et.access_token_signing_keys_id AS et_access_token_signing_keys_id,
+        et.data                         AS et_data,
+        et.name                         AS et_name,
+        et.insert_instant               AS et_insert_instant,
+          et.last_update_instant AS et_last_update_instant,
+          -- The EntityType resultMap's accessTokenVerificationKeyIds collection requires this column to be present
+          -- (notNullColumn), but this query intentionally does not join entity_type_verification_keys to avoid fan-out
+          -- risk for this performance-critical streaming query. NULL satisfies the resultMap without joining; reindexing
+          -- doesn't need verification key data.
+          NULL                   AS et_access_token_verification_keys_id
+        FROM entities AS e
+        INNER JOIN entity_types AS et ON e.entity_types_id = et.id
+  </sql>
+
+  <!--
+    The configuration for this SELECT is super critical to ensure the results are streamed and not held in RAM. If we change any of this, we need to do
+    extensive testing with 1M+ rows and ensure JDBC/MyBatis still decides to stream the results.
+  -->
+  <select id="retrieveEntitiesForReindex" resultMap="Entity" statementType="STATEMENT" resultSetType="FORWARD_ONLY" fetchSize="50" resultOrdered="true" databaseId="postgresql">
+    <include refid="selectForReindex"/>
+  </select>
+
+  <!--
+    The configuration for this SELECT is super critical to ensure the results are streamed and not held in RAM. If we change any of this, we need to do
+    extensive testing with 1M+ rows and ensure JDBC/MyBatis still decides to stream the results.
+  -->
+  <select id="retrieveEntitiesForReindex" resultMap="Entity" statementType="STATEMENT" resultSetType="FORWARD_ONLY" fetchSize="-2147483648" resultOrdered="true" databaseId="mysql">
+    <include refid="selectForReindex"/>
+  </select>
+</mapper>

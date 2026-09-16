@@ -1,0 +1,789 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.ApplicationMapper">
+  <resultMap id="Application" type="io.fusionauth.domain.Application">
+    <id property="id" column="a_id"/>
+    <result property="accessControlConfiguration.uiIPAccessControlListId" column="a_ui_ip_access_control_lists_id" />
+    <result property="active" column="a_active"/>
+    <result property="dataFromDatabase" column="a_data" />
+    <result property="emailConfiguration.emailUpdateEmailTemplateId" column="a_email_update_email_templates_id"/>
+    <result property="emailConfiguration.emailVerificationEmailTemplateId" column="a_email_verification_email_templates_id"/>
+    <result property="emailConfiguration.emailVerifiedEmailTemplateId" column="a_email_verified_email_templates_id"/>
+    <result property="emailConfiguration.forgotPasswordEmailTemplateId" column="a_forgot_password_email_templates_id"/>
+    <result property="emailConfiguration.loginIdInUseOnCreateEmailTemplateId" column="a_login_id_in_use_on_create_email_templates_id"/>
+    <result property="emailConfiguration.loginIdInUseOnUpdateEmailTemplateId" column="a_login_id_in_use_on_update_email_templates_id"/>
+    <result property="emailConfiguration.loginNewDeviceEmailTemplateId" column="a_login_new_device_email_templates_id"/>
+    <result property="emailConfiguration.loginSuspiciousEmailTemplateId" column="a_login_suspicious_email_templates_id"/>
+    <result property="emailConfiguration.passwordResetSuccessEmailTemplateId" column="a_password_reset_success_email_templates_id"/>
+    <result property="emailConfiguration.passwordUpdateEmailTemplateId" column="a_password_update_email_templates_id"/>
+    <result property="emailConfiguration.passwordlessEmailTemplateId" column="a_passwordless_email_templates_id"/>
+    <result property="emailConfiguration.setPasswordEmailTemplateId" column="a_set_password_email_templates_id"/>
+    <result property="emailConfiguration.twoFactorMethodAddEmailTemplateId" column="a_two_factor_method_add_email_templates_id"/>
+    <result property="emailConfiguration.twoFactorMethodRemoveEmailTemplateId" column="a_two_factor_method_remove_email_templates_id"/>
+    <result property="registrationConfiguration.formId" column="a_forms_id"/>
+    <result property="insertInstant" column="a_insert_instant"/>
+    <result property="jwtConfiguration.accessTokenKeyId" column="a_access_token_signing_keys_id"/>
+    <result property="jwtConfiguration.idTokenKeyId" column="a_id_token_signing_keys_id"/>
+    <result property="lastUpdateInstant" column="a_last_update_instant"/>
+    <result property="multiFactorConfiguration.email.templateId" column="a_multi_factor_email_message_templates_id"/>
+    <result property="multiFactorConfiguration.sms.templateId" column="a_multi_factor_sms_message_templates_id"/>
+    <result property="multiFactorConfiguration.voice.templateId" column="a_multi_factor_voice_message_templates_id"/>
+    <result property="name" column="a_name"/>
+    <result property="formConfiguration.adminRegistrationFormId" column="a_admin_registration_forms_id"/>
+    <result property="formConfiguration.selfServiceFormId" column="a_self_service_user_forms_id"/>
+    <result property="lambdaConfiguration.accessTokenPopulateId" column="a_access_token_populate_lambdas_id"/>
+    <result property="lambdaConfiguration.idTokenPopulateId" column="a_id_token_populate_lambdas_id"/>
+    <result property="lambdaConfiguration.multiFactorRequirementId" column="a_multi_factor_requirement_lambdas_id"/>
+    <result property="lambdaConfiguration.samlv2PopulateId" column="a_samlv2_populate_lambdas_id"/>
+    <result property="lambdaConfiguration.selfServiceRegistrationValidationId" column="a_self_service_registration_validation_lambdas_id"/>
+    <result property="lambdaConfiguration.userinfoPopulateId" column="a_userinfo_populate_lambdas_id"/>
+    <result property="phoneConfiguration.forgotPasswordTemplateId" column="a_phone_configuration_forgot_password_templates_id"/>
+    <result property="phoneConfiguration.identityUpdateTemplateId" column="a_phone_configuration_identity_update_templates_id"/>
+    <result property="phoneConfiguration.loginIdInUseOnCreateTemplateId" column="a_phone_configuration_login_id_in_use_on_create_templates_id"/>
+    <result property="phoneConfiguration.loginIdInUseOnUpdateTemplateId" column="a_phone_configuration_login_id_in_use_on_update_templates_id"/>
+    <result property="phoneConfiguration.loginNewDeviceTemplateId" column="a_phone_configuration_login_new_device_templates_id"/>
+    <result property="phoneConfiguration.loginSuspiciousTemplateId" column="a_phone_configuration_login_suspicious_templates_id"/>
+    <result property="phoneConfiguration.passwordResetSuccessTemplateId" column="a_phone_configuration_password_reset_success_templates_id"/>
+    <result property="phoneConfiguration.passwordUpdateTemplateId" column="a_phone_configuration_password_update_templates_id"/>
+    <result property="phoneConfiguration.passwordlessTemplateId" column="a_phone_configuration_passwordless_templates_id"/>
+    <result property="phoneConfiguration.setPasswordTemplateId" column="a_phone_configuration_set_password_templates_id"/>
+    <result property="phoneConfiguration.twoFactorMethodAddTemplateId" column="a_phone_configuration_two_factor_method_add_templates_id"/>
+    <result property="phoneConfiguration.twoFactorMethodRemoveTemplateId" column="a_phone_configuration_two_factor_method_remove_templates_id"/>
+    <result property="phoneConfiguration.verificationCompleteTemplateId" column="a_phone_configuration_verification_complete_templates_id"/>
+    <result property="phoneConfiguration.verificationTemplateId" column="a_phone_configuration_verification_templates_id"/>
+    <result property="samlv2Configuration.issuer" column="a_samlv2_issuer"/>
+    <result property="samlv2Configuration.keyId" column="a_samlv2_keys_id"/>
+    <result property="samlv2Configuration.logout.keyId" column="a_samlv2_logout_keys_id"/>
+    <result property="samlv2Configuration.logout.singleLogout.keyId" column="a_samlv2_single_logout_keys_id"/>
+    <result property="tenantId" column="a_tenants_id"/>
+    <result property="themeId" column="a_themes_id"/>
+    <result property="universalConfiguration.universal" column="a_universal"/>
+    <result property="verificationEmailTemplateId" column="a_verification_email_templates_id"/>
+    <!--
+      Verification key ids are loaded via a single LEFT JOIN on applications_verification_keys (see the "select" sql fragment),
+      not N+1 nested selects. Each typed list reads the same joined keys_id column, partitioned by type using a CASE-aliased
+      column plus notNullColumn so only rows of the matching type contribute. The nested <id> gives MyBatis a row-identity
+      for each key so repeats produced by the other fan-out joins on this resultMap (e.g. roles, scopes) are de-duplicated,
+      matching the TenantMapper pattern. Read queries order the joined rows by "type, is_default DESC, keys_id" so the
+      default key is the first element of each list. The deprecated defaultVerificationKeyId field is no longer mapped here;
+      it is derived from the first list element in DefaultApplicationReaderService for API response backward compatibility.
+    -->
+    <collection property="samlv2Configuration.verificationKeyIds" ofType="java.util.UUID" notNullColumn="a_samlv2_verification_keys_id">
+      <id column="a_samlv2_verification_keys_id"/>
+      <result column="a_samlv2_verification_keys_id"/>
+    </collection>
+    <collection property="samlv2Configuration.logout.verificationKeyIds" ofType="java.util.UUID" notNullColumn="a_samlv2_logout_verification_keys_id">
+      <id column="a_samlv2_logout_verification_keys_id"/>
+      <result column="a_samlv2_logout_verification_keys_id"/>
+    </collection>
+    <collection property="jwtConfiguration.accessTokenVerificationKeyIds" ofType="java.util.UUID" notNullColumn="a_access_token_verification_keys_id">
+      <id column="a_access_token_verification_keys_id"/>
+      <result column="a_access_token_verification_keys_id"/>
+    </collection>
+    <collection property="jwtConfiguration.idTokenVerificationKeyIds" ofType="java.util.UUID" notNullColumn="a_id_token_verification_keys_id">
+      <id column="a_id_token_verification_keys_id"/>
+      <result column="a_id_token_verification_keys_id"/>
+    </collection>
+  </resultMap>
+
+
+  <resultMap id="ApplicationRole" type="io.fusionauth.domain.ApplicationRole">
+    <id property="id" column="ar_id"/>
+    <result property="applicationId" column="ar_applications_id"/>
+    <result property="description" column="ar_description"/>
+    <result property="insertInstant" column="ar_insert_instant"/>
+    <result property="isDefault" column="ar_is_default"/>
+    <result property="isSuperRole" column="ar_is_super_role"/>
+    <result property="lastUpdateInstant" column="ar_last_update_instant"/>
+    <result property="name" column="ar_name"/>
+  </resultMap>
+
+
+  <resultMap id="ApplicationOAuthScope" type="io.fusionauth.domain.ApplicationOAuthScope">
+    <id property="id" column="os_id"/>
+    <result property="applicationId" column="os_applications_id"/>
+    <result property="dataFromDatabase" column="os_data" />
+    <result property="insertInstant" column="os_insert_instant"/>
+    <result property="lastUpdateInstant" column="os_last_update_instant"/>
+    <result property="name" column="os_name"/>
+  </resultMap>
+
+  <!--@formatter:off-->
+  <sql id="select">
+    SELECT a.id                                                     AS a_id,
+      a.access_token_populate_lambdas_id                            AS a_access_token_populate_lambdas_id,
+      a.access_token_signing_keys_id                                AS a_access_token_signing_keys_id,
+      a.active                                                      AS a_active,
+      a.data                                                        AS a_data,
+      a.email_update_email_templates_id                             AS a_email_update_email_templates_id,
+      a.email_verification_email_templates_id                       AS a_email_verification_email_templates_id,
+      a.email_verified_email_templates_id                           AS a_email_verified_email_templates_id,
+      a.forgot_password_email_templates_id                          AS a_forgot_password_email_templates_id,
+      a.login_id_in_use_on_create_email_templates_id                AS a_login_id_in_use_on_create_email_templates_id,
+      a.login_id_in_use_on_update_email_templates_id                AS a_login_id_in_use_on_update_email_templates_id,
+      a.login_new_device_email_templates_id                         AS a_login_new_device_email_templates_id,
+      a.login_suspicious_email_templates_id                         AS a_login_suspicious_email_templates_id,
+      a.forms_id                                                    AS a_forms_id,
+      a.id_token_populate_lambdas_id                                AS a_id_token_populate_lambdas_id,
+      a.id_token_signing_keys_id                                    AS a_id_token_signing_keys_id,
+      a.insert_instant                                              AS a_insert_instant,
+      a.multi_factor_email_message_templates_id                     AS a_multi_factor_email_message_templates_id,
+      a.multi_factor_requirement_lambdas_id                         AS a_multi_factor_requirement_lambdas_id,
+      a.multi_factor_sms_message_templates_id                       AS a_multi_factor_sms_message_templates_id,
+      a.multi_factor_voice_message_templates_id                     AS a_multi_factor_voice_message_templates_id,
+      a.name                                                        AS a_name,
+      a.last_update_instant                                         AS a_last_update_instant,
+      a.passwordless_email_templates_id                             AS a_passwordless_email_templates_id,
+      a.password_reset_success_email_templates_id                   AS a_password_reset_success_email_templates_id,
+      a.password_update_email_templates_id                          AS a_password_update_email_templates_id,
+      a.phone_configuration_forgot_password_templates_id            AS a_phone_configuration_forgot_password_templates_id,
+      a.phone_configuration_identity_update_templates_id 		        AS a_phone_configuration_identity_update_templates_id,
+      a.phone_configuration_login_id_in_use_on_create_templates_id  AS a_phone_configuration_login_id_in_use_on_create_templates_id,
+      a.phone_configuration_login_id_in_use_on_update_templates_id 	AS a_phone_configuration_login_id_in_use_on_update_templates_id,
+      a.phone_configuration_login_new_device_templates_id 		      AS a_phone_configuration_login_new_device_templates_id,
+      a.phone_configuration_login_suspicious_templates_id 		      AS a_phone_configuration_login_suspicious_templates_id,
+      a.phone_configuration_password_reset_success_templates_id 		AS a_phone_configuration_password_reset_success_templates_id,
+      a.phone_configuration_password_update_templates_id 		        AS a_phone_configuration_password_update_templates_id,
+      a.phone_configuration_passwordless_templates_id               AS a_phone_configuration_passwordless_templates_id,
+      a.phone_configuration_set_password_templates_id               AS a_phone_configuration_set_password_templates_id,
+      a.phone_configuration_two_factor_method_add_templates_id 		  AS a_phone_configuration_two_factor_method_add_templates_id,
+      a.phone_configuration_two_factor_method_remove_templates_id 	AS a_phone_configuration_two_factor_method_remove_templates_id,
+      a.phone_configuration_verification_complete_templates_id      AS a_phone_configuration_verification_complete_templates_id,
+      a.phone_configuration_verification_templates_id               AS a_phone_configuration_verification_templates_id,
+      a.samlv2_issuer                                               AS a_samlv2_issuer,
+      a.samlv2_keys_id                                              AS a_samlv2_keys_id,
+      a.samlv2_logout_keys_id                                       AS a_samlv2_logout_keys_id,
+      a.samlv2_populate_lambdas_id                                  AS a_samlv2_populate_lambdas_id,
+      a.samlv2_single_logout_keys_id                                AS a_samlv2_single_logout_keys_id,
+      a.self_service_registration_validation_lambdas_id             AS a_self_service_registration_validation_lambdas_id,
+      a.set_password_email_templates_id                             AS a_set_password_email_templates_id,
+      a.tenants_id                                                  AS a_tenants_id,
+      a.themes_id                                                   AS a_themes_id,
+      a.two_factor_method_add_email_templates_id                    AS a_two_factor_method_add_email_templates_id,
+      a.two_factor_method_remove_email_templates_id                 AS a_two_factor_method_remove_email_templates_id,
+      a.ui_ip_access_control_lists_id                               AS a_ui_ip_access_control_lists_id,
+      a.universal                                                   AS a_universal,
+      a.userinfo_populate_lambdas_id                                AS a_userinfo_populate_lambdas_id,
+      a.verification_email_templates_id                             AS a_verification_email_templates_id,
+      a.admin_registration_forms_id                                 AS a_admin_registration_forms_id,
+      a.self_service_user_forms_id                                  AS a_self_service_user_forms_id,
+      CASE WHEN avk.type = 'Samlv2Verification' THEN avk.keys_id END       AS a_samlv2_verification_keys_id,
+      CASE WHEN avk.type = 'Samlv2LogoutVerification' THEN avk.keys_id END AS a_samlv2_logout_verification_keys_id,
+      CASE WHEN avk.type = 'AccessTokenVerification' THEN avk.keys_id END  AS a_access_token_verification_keys_id,
+      CASE WHEN avk.type = 'IdTokenVerification' THEN avk.keys_id END      AS a_id_token_verification_keys_id
+      FROM applications AS a
+      LEFT OUTER JOIN applications_verification_keys AS avk ON avk.applications_id = a.id
+  </sql>
+  <!--@formatter:on-->
+
+  <sql id="select_application_roles">
+    SELECT ar.id             AS ar_id,
+      ar.name                AS ar_name,
+      ar.applications_id     AS ar_applications_id,
+      ar.description         AS ar_description,
+      ar.insert_instant      AS ar_insert_instant,
+      ar.is_default          AS ar_is_default,
+      ar.last_update_instant AS ar_last_update_instant,
+      ar.is_super_role       AS ar_is_super_role
+      FROM application_roles AS ar
+      JOIN applications AS a ON ar.applications_id = a.id
+  </sql>
+
+  <sql id="select_oauth_scopes">
+    SELECT os.id              AS os_id,
+      os.applications_id      AS os_applications_id,
+      os.data                 AS os_data,
+      os.insert_instant       AS os_insert_instant,
+      os.last_update_instant  AS os_last_update_instant,
+      os.name                 AS os_name
+    FROM application_oauth_scopes AS os
+    <if test="tenantId != null">
+      JOIN applications AS a ON os.applications_id = a.id
+    </if>
+  </sql>
+
+  <!--@formatter:off-->
+  <insert id="create">
+    INSERT INTO
+       applications(
+                   id,
+                   active,
+                   data,
+                   email_update_email_templates_id,
+                   email_verification_email_templates_id,
+                   email_verified_email_templates_id,
+                   forgot_password_email_templates_id,
+                   name,
+                   access_token_signing_keys_id,
+                   forms_id,
+                   id_token_signing_keys_id,
+                   insert_instant,
+                   last_update_instant,
+                   login_id_in_use_on_create_email_templates_id,
+                   login_id_in_use_on_update_email_templates_id,
+                   login_new_device_email_templates_id,
+                   login_suspicious_email_templates_id,
+                    multi_factor_email_message_templates_id,
+                    multi_factor_requirement_lambdas_id,
+                    multi_factor_sms_message_templates_id,
+                    multi_factor_voice_message_templates_id,
+                    passwordless_email_templates_id,
+                   password_reset_success_email_templates_id,
+                   password_update_email_templates_id,
+                   phone_configuration_forgot_password_templates_id,
+                   phone_configuration_identity_update_templates_id,
+                   phone_configuration_login_id_in_use_on_create_templates_id,
+                   phone_configuration_login_id_in_use_on_update_templates_id,
+                   phone_configuration_login_new_device_templates_id,
+                   phone_configuration_login_suspicious_templates_id,
+                   phone_configuration_password_reset_success_templates_id,
+                   phone_configuration_password_update_templates_id,
+                   phone_configuration_passwordless_templates_id,
+                   phone_configuration_set_password_templates_id,
+                   phone_configuration_two_factor_method_add_templates_id,
+                   phone_configuration_two_factor_method_remove_templates_id,
+                   phone_configuration_verification_complete_templates_id,
+                   phone_configuration_verification_templates_id,
+                   samlv2_issuer,
+                   access_token_populate_lambdas_id,
+                   id_token_populate_lambdas_id,
+                   admin_registration_forms_id,
+                   self_service_registration_validation_lambdas_id,
+                   self_service_user_forms_id,
+                   samlv2_keys_id,
+                   samlv2_logout_keys_id,
+                   samlv2_single_logout_keys_id,
+                   samlv2_populate_lambdas_id,
+                   set_password_email_templates_id,
+                   tenants_id,
+                   themes_id,
+                   two_factor_method_add_email_templates_id,
+                   two_factor_method_remove_email_templates_id,
+                   ui_ip_access_control_lists_id,
+                   universal,
+                   userinfo_populate_lambdas_id,
+                   verification_email_templates_id)
+      VALUES (#{id},
+              #{active},
+              #{dataToDatabase},
+              #{emailConfiguration.emailUpdateEmailTemplateId},
+              #{emailConfiguration.emailVerificationEmailTemplateId},
+              #{emailConfiguration.emailVerifiedEmailTemplateId},
+              #{emailConfiguration.forgotPasswordEmailTemplateId},
+              #{name},
+              #{jwtConfiguration.accessTokenKeyId},
+              #{registrationConfiguration.formId},
+              #{jwtConfiguration.idTokenKeyId},
+              #{insertInstant},
+              #{lastUpdateInstant},
+              #{emailConfiguration.loginIdInUseOnCreateEmailTemplateId},
+              #{emailConfiguration.loginIdInUseOnUpdateEmailTemplateId},
+              #{emailConfiguration.loginNewDeviceEmailTemplateId},
+              #{emailConfiguration.loginSuspiciousEmailTemplateId},
+               #{multiFactorConfiguration.email.templateId},
+               #{lambdaConfiguration.multiFactorRequirementId},
+               #{multiFactorConfiguration.sms.templateId},
+               #{multiFactorConfiguration.voice.templateId},
+               #{emailConfiguration.passwordlessEmailTemplateId},
+              #{emailConfiguration.passwordResetSuccessEmailTemplateId},
+              #{emailConfiguration.passwordUpdateEmailTemplateId},
+              #{phoneConfiguration.forgotPasswordTemplateId},
+              #{phoneConfiguration.identityUpdateTemplateId},
+              #{phoneConfiguration.loginIdInUseOnCreateTemplateId},
+              #{phoneConfiguration.loginIdInUseOnUpdateTemplateId},
+              #{phoneConfiguration.loginNewDeviceTemplateId},
+              #{phoneConfiguration.loginSuspiciousTemplateId},
+              #{phoneConfiguration.passwordResetSuccessTemplateId},
+              #{phoneConfiguration.passwordUpdateTemplateId},
+              #{phoneConfiguration.passwordlessTemplateId},
+              #{phoneConfiguration.setPasswordTemplateId},
+              #{phoneConfiguration.twoFactorMethodAddTemplateId},
+              #{phoneConfiguration.twoFactorMethodRemoveTemplateId},
+              #{phoneConfiguration.verificationCompleteTemplateId},
+              #{phoneConfiguration.verificationTemplateId},
+              #{samlv2Configuration.issuer},
+              #{lambdaConfiguration.accessTokenPopulateId},
+              #{lambdaConfiguration.idTokenPopulateId},
+              #{formConfiguration.adminRegistrationFormId},
+              #{lambdaConfiguration.selfServiceRegistrationValidationId},
+              #{formConfiguration.selfServiceFormId},
+              #{samlv2Configuration.keyId},
+              #{samlv2Configuration.logout.keyId},
+              #{samlv2Configuration.logout.singleLogout.keyId},
+              #{lambdaConfiguration.samlv2PopulateId},
+              #{emailConfiguration.setPasswordEmailTemplateId},
+              #{tenantId},
+              #{themeId},
+              #{emailConfiguration.twoFactorMethodAddEmailTemplateId},
+              #{emailConfiguration.twoFactorMethodRemoveEmailTemplateId},
+              #{accessControlConfiguration.uiIPAccessControlListId},
+              #{universalConfiguration.universal},
+              #{lambdaConfiguration.userinfoPopulateId},
+              #{verificationEmailTemplateId})
+  </insert>
+  <!--@formatter:on-->
+
+  <!--@formatter:off-->
+  <update id="update">
+    UPDATE applications
+    SET
+      access_token_populate_lambdas_id                           = #{lambdaConfiguration.accessTokenPopulateId},
+      access_token_signing_keys_id                               = #{jwtConfiguration.accessTokenKeyId},
+      active                                                     = #{active},
+      data                                                       = #{dataToDatabase},
+      email_update_email_templates_id                            = #{emailConfiguration.emailUpdateEmailTemplateId},
+      email_verification_email_templates_id                      = #{emailConfiguration.emailVerificationEmailTemplateId},
+      email_verified_email_templates_id                          = #{emailConfiguration.emailVerifiedEmailTemplateId},
+      forgot_password_email_templates_id                         = #{emailConfiguration.forgotPasswordEmailTemplateId},
+      forms_id                                                   = #{registrationConfiguration.formId},
+      id_token_populate_lambdas_id                               = #{lambdaConfiguration.idTokenPopulateId},
+      id_token_signing_keys_id                                   = #{jwtConfiguration.idTokenKeyId},
+      last_update_instant                                        = #{lastUpdateInstant},
+      login_id_in_use_on_create_email_templates_id               = #{emailConfiguration.loginIdInUseOnCreateEmailTemplateId},
+      login_id_in_use_on_update_email_templates_id               = #{emailConfiguration.loginIdInUseOnUpdateEmailTemplateId},
+      login_new_device_email_templates_id                        = #{emailConfiguration.loginNewDeviceEmailTemplateId},
+      login_suspicious_email_templates_id                        = #{emailConfiguration.loginSuspiciousEmailTemplateId},
+      passwordless_email_templates_id                            = #{emailConfiguration.passwordlessEmailTemplateId},
+      password_reset_success_email_templates_id                  = #{emailConfiguration.passwordResetSuccessEmailTemplateId},
+      password_update_email_templates_id                         = #{emailConfiguration.passwordUpdateEmailTemplateId},
+      phone_configuration_forgot_password_templates_id           = #{phoneConfiguration.forgotPasswordTemplateId},
+      phone_configuration_identity_update_templates_id           = #{phoneConfiguration.identityUpdateTemplateId},
+      phone_configuration_login_id_in_use_on_create_templates_id = #{phoneConfiguration.loginIdInUseOnCreateTemplateId},
+      phone_configuration_login_id_in_use_on_update_templates_id = #{phoneConfiguration.loginIdInUseOnUpdateTemplateId},
+      phone_configuration_login_new_device_templates_id          = #{phoneConfiguration.loginNewDeviceTemplateId},
+      phone_configuration_login_suspicious_templates_id          = #{phoneConfiguration.loginSuspiciousTemplateId},
+      phone_configuration_password_reset_success_templates_id    = #{phoneConfiguration.passwordResetSuccessTemplateId},
+      phone_configuration_password_update_templates_id           = #{phoneConfiguration.passwordUpdateTemplateId},
+      phone_configuration_passwordless_templates_id              = #{phoneConfiguration.passwordlessTemplateId},
+      phone_configuration_set_password_templates_id              = #{phoneConfiguration.setPasswordTemplateId},
+      phone_configuration_two_factor_method_add_templates_id     = #{phoneConfiguration.twoFactorMethodAddTemplateId},
+      phone_configuration_two_factor_method_remove_templates_id  = #{phoneConfiguration.twoFactorMethodRemoveTemplateId},
+      phone_configuration_verification_complete_templates_id     = #{phoneConfiguration.verificationCompleteTemplateId},
+      phone_configuration_verification_templates_id              = #{phoneConfiguration.verificationTemplateId},
+      multi_factor_email_message_templates_id                    = #{multiFactorConfiguration.email.templateId},
+      multi_factor_requirement_lambdas_id                        = #{lambdaConfiguration.multiFactorRequirementId},
+      multi_factor_sms_message_templates_id                      = #{multiFactorConfiguration.sms.templateId},
+      multi_factor_voice_message_templates_id                    = #{multiFactorConfiguration.voice.templateId},
+      name                                                       = #{name},
+      admin_registration_forms_id                                = #{formConfiguration.adminRegistrationFormId},
+      self_service_registration_validation_lambdas_id            = #{lambdaConfiguration.selfServiceRegistrationValidationId},
+      self_service_user_forms_id                                 = #{formConfiguration.selfServiceFormId},
+      samlv2_issuer                                              = #{samlv2Configuration.issuer},
+      samlv2_keys_id                                             = #{samlv2Configuration.keyId},
+      samlv2_logout_keys_id                                      = #{samlv2Configuration.logout.keyId},
+      samlv2_populate_lambdas_id                                 = #{lambdaConfiguration.samlv2PopulateId},
+      samlv2_single_logout_keys_id                               = #{samlv2Configuration.logout.singleLogout.keyId},
+      set_password_email_templates_id                            = #{emailConfiguration.setPasswordEmailTemplateId},
+      themes_id                                                  = #{themeId},
+      two_factor_method_add_email_templates_id                   = #{emailConfiguration.twoFactorMethodAddEmailTemplateId},
+      two_factor_method_remove_email_templates_id                = #{emailConfiguration.twoFactorMethodRemoveEmailTemplateId},
+      ui_ip_access_control_lists_id                              = #{accessControlConfiguration.uiIPAccessControlListId},
+      universal                                                  = #{universalConfiguration.universal},
+      userinfo_populate_lambdas_id                               = #{lambdaConfiguration.userinfoPopulateId},
+      verification_email_templates_id                            = #{verificationEmailTemplateId}
+      WHERE id = #{id}
+  </update>
+  <!--@formatter:on-->
+
+  <update id="updateOAuthScope">
+    UPDATE application_oauth_scopes
+    SET data = #{dataToDatabase},
+      last_update_instant = #{lastUpdateInstant}
+    WHERE id = #{id}
+  </update>
+
+  <update id="updateRole">
+    UPDATE application_roles
+    SET description       = #{description},
+      is_default          = #{isDefault},
+      is_super_role       = #{isSuperRole},
+      last_update_instant = #{lastUpdateInstant}
+      WHERE id = #{id}
+  </update>
+
+  <insert id="createRoles">
+    INSERT INTO application_roles (id, applications_id, description, insert_instant, is_default, is_super_role, last_update_instant, name) VALUES
+    <foreach collection="roles" item="role" separator=",">
+      (#{role.id}, #{role.applicationId}, #{role.description}, #{role.insertInstant}, #{role.isDefault}, #{role.isSuperRole},
+      #{role.lastUpdateInstant}, #{role.name})
+    </foreach>
+  </insert>
+
+  <insert id="createCleanSpeakApplicationIds">
+    INSERT INTO clean_speak_applications (applications_id, clean_speak_application_id) VALUES
+    <foreach collection="cleanSpeakApplicationIds" item="cleanSpeakApplicationId" separator=",">
+      (#{applicationId}, #{cleanSpeakApplicationId})
+    </foreach>
+  </insert>
+
+  <insert id="createOAuthScopes">
+    INSERT INTO application_oauth_scopes (id, applications_id, data, insert_instant, last_update_instant, name) VALUES
+    <foreach collection="scopes" item="scope" separator=",">
+      (#{scope.id}, #{scope.applicationId}, #{scope.dataToDatabase}, #{scope.insertInstant}, #{scope.lastUpdateInstant}, #{scope.name})
+    </foreach>
+  </insert>
+
+  <insert id="createVerificationKeys">
+    INSERT INTO applications_verification_keys (applications_id, keys_id, type, is_default) VALUES
+    <foreach collection="keyIds" item="keyId" index="i" separator=",">
+      (#{applicationId}, #{keyId}, #{type},
+      <choose><when test="markDefault and i == 0">true</when><otherwise>false</otherwise></choose>)
+    </foreach>
+  </insert>
+
+  <update id="deactivate" databaseId="mysql">
+    UPDATE applications
+    SET active = FALSE,
+      data     = JSON_SET(CAST(data AS JSON),
+                          '$.state', 'Inactive')
+      WHERE id = #{applicationId}
+  </update>
+
+  <update id="deactivate" databaseId="postgresql">
+    UPDATE applications
+    SET active = FALSE,
+      data     = JSONB_SET(data::JSONB, '{state}', '"Inactive"')
+      WHERE id = #{applicationId}
+  </update>
+
+
+  <update id="reactivate" databaseId="mysql">
+    UPDATE applications
+    SET active = TRUE,
+      data     = JSON_SET(CAST(data AS JSON),
+                          '$.state', 'Active')
+      WHERE id = #{applicationId}
+  </update>
+
+  <update id="reactivate" databaseId="postgresql">
+    UPDATE applications
+    SET active = TRUE,
+      data     = JSONB_SET(data::JSONB, '{state}', '"Active"')
+      WHERE id = #{applicationId}
+  </update>
+
+  <delete id="deleteRolesFromUsers">
+    DELETE
+    FROM user_registrations_application_roles
+    WHERE application_roles_id IN (
+    <foreach collection="roleIds" item="roleId" separator=",">
+      #{roleId}
+    </foreach>
+    )
+  </delete>
+
+  <select id="retrieveAllExistingByName" resultMap="Application">
+    <include refid="select"/>
+    WHERE a.name = #{name}
+    <if test="tenantId != null">
+      AND a.tenants_id = #{tenantId}
+    </if>
+    <if test="id != null">
+      AND a.id != #{id}
+    </if>
+    ORDER BY a.id, avk.type, avk.is_default DESC, avk.keys_id
+  </select>
+
+  <select id="retrieveAllByRegistrationFormId" resultMap="Application">
+    <include refid="select"/>
+    WHERE a.forms_id = #{formId}
+    ORDER BY a.name ASC, a.id, avk.type, avk.is_default DESC, avk.keys_id
+  </select>
+
+  <select id="retrieveAllIgnoreActive" resultMap="Application">
+    <include refid="select"/>
+    <if test="tenantId != null">
+      WHERE a.tenants_id = #{tenantId}
+    </if>
+    ORDER BY a.name ASC, a.id, avk.type, avk.is_default DESC, avk.keys_id
+  </select>
+
+  <select id="retrieveAll" resultMap="Application">
+    <include refid="select"/>
+    WHERE a.active = true
+    <if test="tenantId != null">
+      AND (a.tenants_id = #{tenantId} or a.universal = true)
+    </if>
+    ORDER BY a.insert_instant DESC, a.id, avk.type, avk.is_default DESC, avk.keys_id
+  </select>
+
+  <select id="retrieveAllInactive" resultMap="Application">
+    <include refid="select"/>
+    WHERE a.active = false
+    <if test="tenantId != null">
+      AND a.tenants_id = #{tenantId}
+    </if>
+    ORDER BY a.insert_instant DESC, a.id, avk.type, avk.is_default DESC, avk.keys_id
+  </select>
+
+  <select id="retrieveApplicationIdsUsingFormById" resultType="java.util.UUID">
+    SELECT id
+      FROM applications AS a
+      WHERE a.forms_id = #{formId} OR a.admin_registration_forms_id = #{formId} OR a.self_service_user_forms_id = #{formId}
+  </select>
+
+  <select id="retrieveByCriteria" resultMap="Application">
+    WITH ids AS (
+      SELECT a.id
+      FROM applications AS a
+      LEFT OUTER JOIN tenants AS t ON t.id = a.tenants_id
+      <where>
+        <if test="name != null">
+          AND LOWER(a.name) LIKE #{name}
+        </if>
+        <if test="tenantId != null">
+          AND a.tenants_id = #{tenantId}
+        </if>
+        <if test="universal != null">
+          AND a.universal = #{universal}
+        </if>
+        <if test="state != null">
+          <if test="_databaseId == 'mysql'">
+            AND a.data ->> '$.state' = #{state}
+          </if>
+          <if test="_databaseId == 'postgresql'">
+            AND (a.data::JSONB ->> 'state') = #{state}
+          </if>
+        </if>
+      </where>
+      <if test="orderBy != null">
+        ORDER BY ${orderBy}
+      </if>
+      <if test="numberOfResults != null">
+        LIMIT #{numberOfResults}
+      </if>
+      <if test="startRow != null">
+        OFFSET #{startRow}
+      </if>
+    )
+    <include refid="select"/>
+    INNER JOIN ids ON ids.id = a.id
+    LEFT OUTER JOIN tenants AS t ON t.id = a.tenants_id
+    <choose>
+      <when test="orderBy != null">
+        ORDER BY ${orderBy}, a.id, avk.type, avk.is_default DESC, avk.keys_id
+      </when>
+      <otherwise>
+        ORDER BY a.id, avk.type, avk.is_default DESC, avk.keys_id
+      </otherwise>
+    </choose>
+  </select>
+
+  <select id="retrieveCountByCriteria" resultType="int">
+    SELECT COUNT(*)
+    FROM applications AS a
+    <where>
+      <if test="name != null">
+        AND LOWER(a.name) LIKE #{name}
+      </if>
+      <if test="tenantId != null">
+        AND a.tenants_id = #{tenantId}
+      </if>
+      <if test="universal != null">
+        AND a.universal = #{universal}
+      </if>
+      <if test="state != null">
+        <if test="_databaseId == 'mysql'">
+          AND a.data ->> '$.state' = #{state}
+        </if>
+        <if test="_databaseId == 'postgresql'">
+          AND (a.data::JSONB ->> 'state') = #{state}
+        </if>
+      </if>
+    </where>
+  </select>
+
+  <select id="retrieveById" resultMap="Application">
+    <include refid="select"/>
+    WHERE a.id = #{id} AND a.active = true
+    <if test="tenantId != null">
+      AND (a.tenants_id = #{tenantId} OR a.universal = true)
+    </if>
+    ORDER BY a.id, avk.type, avk.is_default DESC, avk.keys_id
+  </select>
+
+  <select id="retrieveByIds" resultMap="Application">
+    <include refid="select"/>
+    WHERE a.id
+    IN (
+        <foreach collection="applicationIds" item="applicationId" separator=",">
+          #{applicationId}
+        </foreach>
+    )
+    AND a.active = true
+    <if test="tenantId != null">
+      AND (a.tenants_id = #{tenantId} OR a.universal = true)
+    </if>
+    ORDER BY a.id, avk.type, avk.is_default DESC, avk.keys_id
+  </select>
+
+  <select id="retrieveByIdIgnoreActive" resultMap="Application">
+    <include refid="select"/>
+    WHERE a.id = #{id}
+    <if test="tenantId != null">
+      AND (a.tenants_id = #{tenantId} or a.universal = true)
+    </if>
+    ORDER BY a.id, avk.type, avk.is_default DESC, avk.keys_id
+  </select>
+
+  <select id="retrieveByName" resultMap="Application">
+    <include refid="select"/>
+    WHERE a.name = #{name} AND a.active = true
+    <if test="tenantId != null">
+      AND a.tenants_id = #{tenantId}
+    </if>
+    ORDER BY a.id, avk.type, avk.is_default DESC, avk.keys_id
+  </select>
+
+  <select id="retrieveBySAMLv2Issuer" resultMap="Application">
+    <include refid="select"/>
+    WHERE
+    a.samlv2_issuer = #{issuer} AND a.tenants_id = #{tenantId}
+    ORDER BY a.id, avk.type, avk.is_default DESC, avk.keys_id
+  </select>
+
+  <select id="retrieveOAuthScopeById" resultMap="ApplicationOAuthScope">
+    <include refid="select_oauth_scopes"/>
+    WHERE os.id = #{scopeId}
+    <if test="applicationId != null">
+      AND os.applications_id = #{applicationId}
+    </if>
+    <if test="tenantId != null">
+      AND (a.tenants_id = #{tenantId} OR a.universal = true)
+    </if>
+  </select>
+
+  <select id="retrieveOAuthScopeByName" resultMap="ApplicationOAuthScope">
+    <include refid="select_oauth_scopes"/>
+    WHERE os.applications_id = #{applicationId}
+      AND os.name = #{scopeName}
+    <if test="tenantId != null">
+      AND a.tenants_id = #{tenantId}
+    </if>
+  </select>
+
+  <select id="retrieveOAuthScopesByApplicationIds" resultMap="ApplicationOAuthScope">
+    <include refid="select_oauth_scopes"/>
+    WHERE os.applications_id
+    IN (
+        <foreach collection="applicationIds" item="applicationId" separator=",">
+          #{applicationId}
+        </foreach>
+    )
+  </select>
+
+  <select id="retrieveExisting" resultMap="Application">
+    <include refid="select"/>
+    WHERE
+    <if test="id != null">
+      a.id != #{id} AND
+    </if>
+    a.name = #{name}
+    <if test="tenantId != null">
+      AND (a.tenants_id = #{tenantId} OR a.universal = true)
+    </if>
+    ORDER BY a.id, avk.type, avk.is_default DESC, avk.keys_id
+  </select>
+
+  <select id="retrieveExistingUniversal" resultMap="Application">
+      <include refid="select"/>
+      WHERE
+      <if test="id != null">
+        a.id != #{id} AND
+      </if>
+      a.name = #{name} AND a.universal = true
+      ORDER BY a.id, avk.type, avk.is_default DESC, avk.keys_id
+    </select>
+
+  <select id="retrieveExistingBySAMLv2Issuer" resultMap="Application">
+    <include refid="select"/>
+    WHERE
+    <if test="id != null">
+      a.id != #{id} AND
+    </if>
+    a.samlv2_issuer = #{issuer} AND a.tenants_id = #{tenantId}
+    ORDER BY a.id, avk.type, avk.is_default DESC, avk.keys_id
+  </select>
+
+  <select id="retrieveTenantManagerApplication" resultMap="Application">
+    <include refid="select"/>
+    WHERE id = (SELECT tenant_manager_applications_id FROM instance LIMIT 1)
+    ORDER BY a.id, avk.type, avk.is_default DESC, avk.keys_id
+  </select>
+
+  <select id="retrieveIdsByCleanSpeakIds" resultType="java.util.UUID">
+    SELECT DISTINCT a.id FROM applications AS a INNER JOIN clean_speak_applications AS csa ON a.id = csa.applications_id
+    WHERE csa.clean_speak_application_id IN (
+    <foreach collection="cleanSpeakApplicationIds" item="id" separator=",">
+      #{id}
+    </foreach>
+    )
+  </select>
+
+  <select id="retrieveValidIds" resultType="java.util.UUID">
+    SELECT DISTINCT a.id FROM applications AS a
+    WHERE a.id IN (
+    <foreach collection="ids" item="id" separator=",">
+      #{id}
+    </foreach>
+    )
+  </select>
+
+  <select id="retrieveRolesByApplicationIds" resultMap="ApplicationRole">
+    <include refid="select_application_roles"/>
+    WHERE ar.applications_id
+    IN (
+        <foreach collection="applicationIds" item="applicationId" separator=",">
+          #{applicationId}
+        </foreach>
+    )
+  </select>
+
+  <select id="retrieveRolesByIds" resultMap="ApplicationRole">
+    <include refid="select_application_roles"/>
+    WHERE ar.id IN (
+    <foreach collection="roleIds" item="id" separator=",">
+      #{id}
+    </foreach>
+    )
+    <if test="tenantId != null">
+      AND (a.tenants_id = #{tenantId} OR a.universal = true)
+    </if>
+  </select>
+
+  <select id="retrieveRoleById" resultMap="ApplicationRole">
+    <include refid="select_application_roles"/>
+    WHERE ar.id = #{roleId}
+    <if test="applicationId != null">
+      AND ar.applications_id = #{applicationId}
+    </if>
+    <if test="tenantId != null">
+      AND (a.tenants_id = #{tenantId} OR a.universal = true)
+    </if>
+  </select>
+
+  <select id="retrieveRoleByName" resultMap="ApplicationRole">
+    <include refid="select_application_roles"/>
+    WHERE ar.applications_id = #{applicationId} AND ar.name = #{name}
+
+    <if test="tenantId != null">
+      AND (a.tenants_id = #{tenantId} OR a.universal = true)
+    </if>
+  </select>
+
+  <select id="retrieveRolesByNames" resultMap="ApplicationRole">
+    <include refid="select_application_roles"/>
+    WHERE ar.applications_id = #{applicationId}
+
+    AND ar.name IN (
+    <foreach collection="names" item="name" separator=",">
+      #{name}
+    </foreach>
+    )
+
+    <if test="tenantId != null">
+      AND (a.tenants_id = #{tenantId} or a.universal = true)
+    </if>
+  </select>
+
+</mapper>

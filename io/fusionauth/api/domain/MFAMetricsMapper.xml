@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c) 2026, FusionAuth, All Rights Reserved
+  -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.MFAMetricsMapper">
+  <resultMap id="MfaTenantMetric" type="io.fusionauth.api.domain.mybatis._MFATenantMetric">
+    <id column="tenants_id" property="tenantId"/>
+    <result property="challengeCount" column="challenge_count"/>
+    <result property="failedAttemptCount" column="failed_attempt_count"/>
+    <result property="successCount" column="success_count"/>
+  </resultMap>
+
+  <insert id="incrementChallengeCount" databaseId="mysql">
+    INSERT INTO mfa_metrics (tenants_id,
+                             challenge_count,
+                             failed_attempt_count,
+                             success_count)
+      VALUES (#{tenantId}, 1, 0, 0)
+    ON DUPLICATE KEY UPDATE
+      challenge_count = challenge_count + 1
+  </insert>
+
+  <insert id="incrementChallengeCount" databaseId="postgresql">
+    INSERT INTO mfa_metrics AS mm (tenants_id,
+                                   challenge_count,
+                                   failed_attempt_count,
+                                   success_count)
+      VALUES (#{tenantId}, 1, 0, 0)
+    ON CONFLICT (tenants_id) DO UPDATE SET challenge_count = mm.challenge_count + 1
+  </insert>
+
+  <insert id="incrementFailedAttemptCount" databaseId="mysql">
+    INSERT INTO mfa_metrics (tenants_id,
+                             challenge_count,
+                             failed_attempt_count,
+                             success_count)
+      VALUES (#{tenantId}, 0, 1, 0)
+    ON DUPLICATE KEY UPDATE
+      failed_attempt_count = failed_attempt_count + 1
+  </insert>
+
+  <insert id="incrementFailedAttemptCount" databaseId="postgresql">
+    INSERT INTO mfa_metrics AS mm (tenants_id,
+                                   challenge_count,
+                                   failed_attempt_count,
+                                   success_count)
+      VALUES (#{tenantId}, 0, 1, 0)
+    ON CONFLICT (tenants_id) DO UPDATE SET failed_attempt_count = mm.failed_attempt_count + 1
+  </insert>
+
+  <insert id="incrementSuccessCount" databaseId="mysql">
+    INSERT INTO mfa_metrics (tenants_id,
+                             challenge_count,
+                             failed_attempt_count,
+                             success_count)
+      VALUES (#{tenantId}, 0, 0, 1)
+    ON DUPLICATE KEY UPDATE
+      success_count = success_count + 1
+  </insert>
+
+  <insert id="incrementSuccessCount" databaseId="postgresql">
+    INSERT INTO mfa_metrics AS mm (tenants_id,
+                                   challenge_count,
+                                   failed_attempt_count,
+                                   success_count)
+      VALUES (#{tenantId}, 0, 0, 1)
+    ON CONFLICT (tenants_id) DO UPDATE SET success_count = mm.success_count + 1
+  </insert>
+</mapper>

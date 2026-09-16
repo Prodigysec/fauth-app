@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.WebhookMapper">
+  <resultMap id="Webhook" type="io.fusionauth.domain.Webhook">
+    <id property="id" column="w_id"/>
+    <result property="connectTimeout" column="w_connect_timeout"/>
+    <result property="description" column="w_description"/>
+    <result property="dataFromDatabase" column="w_data"/>
+    <result property="global" column="w_global"/>
+    <result property="headers" column="w_headers"/>
+    <result property="httpAuthenticationUsername" column="w_http_authentication_username"/>
+    <result property="httpAuthenticationPassword" column="w_http_authentication_password"/>
+    <result property="insertInstant" column="w_insert_instant"/>
+    <result property="lastUpdateInstant" column="w_last_update_instant"/>
+    <result property="readTimeout" column="w_read_timeout"/>
+    <result property="signatureConfiguration.signingKeyId" column="w_signing_keys_id"/>
+    <result property="sslCertificate" column="w_ssl_certificate"/>
+    <result property="sslCertificateKeyId" column="w_ssl_certificate_keys_id"/>
+    <result property="url" column="w_url"/>
+    <collection property="tenantIds" ofType="java.util.UUID">
+      <result column="wt_tenants_id"/>
+    </collection>
+  </resultMap>
+
+  <sql id="select">
+    SELECT
+      w.id                           AS w_id,
+      w.connect_timeout              AS w_connect_timeout,
+      w.description                  AS w_description,
+      w.data                         AS w_data,
+      w.global                       AS w_global,
+      w.headers                      AS w_headers,
+      w.http_authentication_username AS w_http_authentication_username,
+      w.http_authentication_password AS w_http_authentication_password,
+      w.insert_instant               AS w_insert_instant,
+      w.last_update_instant          AS w_last_update_instant,
+      w.read_timeout                 AS w_read_timeout,
+      w.signing_keys_id              AS w_signing_keys_id,
+      w.ssl_certificate              AS w_ssl_certificate,
+      w.ssl_certificate_keys_id      AS w_ssl_certificate_keys_id,
+      w.url                          AS w_url,
+      wt.tenants_id                  AS wt_tenants_id
+    FROM webhooks AS w
+      LEFT OUTER JOIN webhooks_tenants AS wt
+        ON w.id = wt.webhooks_id
+  </sql>
+
+  <insert id="create">
+    INSERT INTO webhooks (id, connect_timeout, description, data, global, headers, http_authentication_username,
+                          http_authentication_password, insert_instant, last_update_instant, read_timeout, signing_keys_id, ssl_certificate,
+                          ssl_certificate_keys_id, url)
+    VALUES (#{id}, #{connectTimeout}, #{description}, #{dataToDatabase}, #{global}, #{headers}, #{httpAuthenticationUsername},
+                   #{httpAuthenticationPassword}, #{insertInstant}, #{lastUpdateInstant}, #{readTimeout}, #{signatureConfiguration.signingKeyId}, #{sslCertificate},
+                   #{sslCertificateKeyId}, #{url})
+  </insert>
+
+  <insert id="createAssociationsToTenants">
+    INSERT INTO webhooks_tenants (webhooks_id, tenants_id) VALUES
+    <foreach collection="tenantIds" item="tenantId" separator=",">
+      (#{id}, #{tenantId})
+    </foreach>
+  </insert>
+
+  <insert id="createAssociationsToWebhooks">
+    INSERT INTO webhooks_tenants (webhooks_id, tenants_id) VALUES
+    <foreach collection="webhookIds" item="webhookId" separator=",">
+      (#{webhookId}, #{tenantId})
+    </foreach>
+  </insert>
+
+  <select id="retrieveAll" resultMap="Webhook">
+    <include refid="select"/>
+    ORDER BY w.insert_instant DESC
+  </select>
+
+  <select id="retrieveAllWithAssignedSslCertificate" resultMap="Webhook">
+    <include refid="select"/>
+    WHERE ssl_certificate_keys_id IS NOT NULL
+    ORDER BY w.insert_instant DESC
+  </select>
+
+  <select id="retrieveByCriteria" resultMap="Webhook">
+    WITH ids AS (
+      SELECT w.id
+      FROM webhooks AS w
+      <where>
+        <if test="description != null">
+          AND LOWER(w.description) LIKE #{description}
+        </if>
+        <if test="url != null">
+          AND LOWER(w.url) LIKE #{url}
+        </if>
+        <if test="tenantId != null">
+          AND (
+            w.global = TRUE OR
+            EXISTS (
+              SELECT 1
+              FROM webhooks_tenants wt
+              WHERE wt.webhooks_id = w.id
+              AND wt.tenants_id = #{tenantId}
+            )
+          )
+        </if>
+      </where>
+      <if test="orderBy != null">
+        ORDER BY ${orderBy}
+      </if>
+      <if test="numberOfResults != null">
+        LIMIT #{numberOfResults}
+      </if>
+      <if test="startRow != null">
+        OFFSET #{startRow}
+      </if>
+    )
+    <include refid="select"/>
+    INNER JOIN ids ON ids.id = w.id
+    <if test="orderBy != null">
+      ORDER BY ${orderBy}
+    </if>
+  </select>
+
+  <select id="retrieveById" resultMap="Webhook">
+    <include refid="select"/>
+    WHERE w.id = #{id}
+  </select>
+
+  <select id="retrieveByURL" resultMap="Webhook">
+    <include refid="select"/>
+    WHERE w.url = #{url}
+  </select>
+
+  <select id="retrieveCountByCriteria" resultType="int">
+      SELECT COUNT(*)
+      FROM webhooks w
+      <where>
+        <if test="description != null">
+          AND LOWER(w.description) LIKE #{description}
+        </if>
+        <if test="url != null">
+          AND LOWER(w.url) LIKE #{url}
+        </if>
+        <if test="tenantId != null">
+          AND (
+            w.global = TRUE OR
+            EXISTS (
+              SELECT 1
+              FROM webhooks_tenants wt
+              WHERE wt.webhooks_id = w.id
+              AND wt.tenants_id = #{tenantId}
+            )
+          )
+        </if>
+      </where>
+  </select>
+
+  <update id="update">
+    UPDATE webhooks
+    SET
+      connect_timeout              = #{connectTimeout},
+      description                  = #{description},
+      data                         = #{dataToDatabase},
+      global                       = #{global},
+      headers                      = #{headers},
+      http_authentication_username = #{httpAuthenticationUsername},
+      http_authentication_password = #{httpAuthenticationPassword},
+      last_update_instant          = #{lastUpdateInstant},
+      read_timeout                 = #{readTimeout},
+      signing_keys_id              = #{signatureConfiguration.signingKeyId},
+      ssl_certificate              = #{sslCertificate},
+      ssl_certificate_keys_id      = #{sslCertificateKeyId},
+      url                          = #{url}
+    WHERE id = #{id}
+  </update>
+</mapper>

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.ExternalIdentifierMapper">
+
+  <resultMap id="ExternalIdentifier" type="io.fusionauth.api.domain.ExternalIdentifier">
+    <id property="id" column="id"/>
+    <id property="applicationId" column="applications_id"/>
+    <id property="data" column="data"/>
+    <id property="expirationInstant" column="expiration_instant"/>
+    <id property="insertInstant" column="insert_instant"/>
+    <id property="tenantId" column="tenants_id"/>
+    <id property="type" column="type"/>
+    <id property="userId" column="users_id"/>
+  </resultMap>
+
+  <insert id="create">
+    INSERT INTO external_identifiers (id, applications_id, data, expiration_instant, insert_instant, tenants_id, type, users_id)
+    VALUES (#{id}, #{applicationId}, #{data}, #{expirationInstant}, #{insertInstant}, #{tenantId}, #{type}, #{userId})
+  </insert>
+
+  <update id="update">
+    UPDATE external_identifiers
+    SET
+      applications_id    = #{applicationId},
+      data               = #{data},
+      expiration_instant = #{expirationInstant},
+      tenants_id         = #{tenantId},
+      type               = #{type},
+      users_id           = #{userId}
+    WHERE id = #{id}
+  </update>
+
+  <delete id="deleteByUserIdAndType">
+    DELETE FROM external_identifiers WHERE type
+    <if test="type.length == 1">
+      = #{type[0]}
+    </if>
+    <if test="type.length > 1">
+      IN (<foreach collection="type" item="t" separator=",">#{t}</foreach>)
+    </if>
+    <if test="excludeId != null">
+    AND id != #{excludeId}
+    </if>
+
+    AND users_id = #{userId}
+  </delete>
+
+  <delete id="deleteByApplicationId">
+    DELETE FROM external_identifiers WHERE applications_id = #{applicationId}
+  </delete>
+
+  <delete id="deleteByApplicationIdAndType">
+    DELETE FROM external_identifiers WHERE applications_id = #{applicationId} AND type = #{type}
+  </delete>
+
+  <delete id="deleteByUserIdApplicationIdAndType">
+    DELETE FROM external_identifiers WHERE type = #{type} AND users_id = #{userId} AND
+    <if test="applicationId != null">
+      applications_id = #{applicationId}
+    </if>
+    <if test="applicationId == null">
+      applications_id IS NULL
+    </if>
+  </delete>
+
+  <delete id="deleteByUserId">
+    DELETE FROM external_identifiers WHERE users_id = #{userId}
+  </delete>
+
+  <delete id="deleteByIds">
+    DELETE FROM external_identifiers WHERE id IN (<foreach collection="externalIds" item="t" separator=",">#{t}</foreach>)
+  </delete>
+
+  <delete id="deleteExpired">
+    DELETE FROM external_identifiers WHERE expiration_instant IS NOT NULL AND expiration_instant &lt; #{now}
+  </delete>
+
+  <delete id="deleteOlderThan">
+    DELETE FROM external_identifiers WHERE tenants_id = #{tenantId} AND type = #{type} AND insert_instant &lt; #{cutoff}
+  </delete>
+
+  <select id="retrieveByApplicationId" resultMap="ExternalIdentifier">
+    SELECT id, applications_id, data, expiration_instant, insert_instant, tenants_id, type, users_id FROM external_identifiers WHERE applications_id = #{applicationId}
+  </select>
+
+  <select id="retrieveById" resultMap="ExternalIdentifier">
+    SELECT id, applications_id, data, expiration_instant, insert_instant, tenants_id, type, users_id FROM external_identifiers WHERE id = #{externalId}
+  </select>
+
+  <select id="retrieveByIdForUpdate" resultMap="ExternalIdentifier">
+    SELECT id, applications_id, data, expiration_instant, insert_instant, tenants_id, type, users_id FROM external_identifiers WHERE id = #{externalId} FOR UPDATE
+  </select>
+
+  <select id="retrieveListByType" resultMap="ExternalIdentifier">
+    SELECT id, applications_id, data, expiration_instant, insert_instant, tenants_id, type, users_id
+    FROM external_identifiers
+    WHERE type = #{type}
+    <if test="tenantId != null">
+      AND tenants_id = #{tenantId}
+    </if>
+  </select>
+
+  <select id="retrieveByType" resultMap="ExternalIdentifier">
+    SELECT id, applications_id, data, expiration_instant, insert_instant, tenants_id, type, users_id FROM external_identifiers
+    WHERE id = #{externalId} AND type = #{type}
+    <if test="tenantId != null">
+      AND tenants_id = #{tenantId}
+    </if>
+  </select>
+
+  <select id="retrieveByUserIdAndTypes" resultMap="ExternalIdentifier">
+    SELECT id, applications_id, data, expiration_instant, insert_instant, tenants_id, type, users_id
+    FROM external_identifiers
+    WHERE users_id = #{userId} AND type IN (<foreach collection="types" item="t" separator=",">#{t}</foreach>)
+  </select>
+
+  <select id="retrieveByUserIdTypeAndApplicationId" resultMap="ExternalIdentifier">
+    SELECT id, applications_id, data, expiration_instant, insert_instant, tenants_id, type, users_id FROM external_identifiers WHERE users_id = #{userId} AND
+    type = #{type} AND
+    <if test="applicationId != null">
+      applications_id = #{applicationId}
+    </if>
+    <if test="applicationId == null">
+      applications_id IS NULL
+    </if>
+  </select>
+</mapper>

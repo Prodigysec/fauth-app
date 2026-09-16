@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.GroupMapper">
+  <resultMap id="Group" type="io.fusionauth.api.domain.mybatis._Group">
+    <id property="id" column="g_id"/>
+    <result property="name" column="g_name"/>
+    <result property="data" column="g_data"/>
+    <result property="insertInstant" column="g_insert_instant"/>
+    <result property="lastUpdateInstant" column="g_last_update_instant"/>
+    <result property="tenantId" column="g_tenants_id"/>
+    <collection property="roleList" column="gar_application_roles_id" foreignColumn="ar_id" resultMap="io.fusionauth.api.domain.ApplicationMapper.ApplicationRole"/>
+  </resultMap>
+
+  <resultMap id="GroupMembership" type="io.fusionauth.domain.GroupMember">
+    <id property="id" column="gm_id"/>
+    <result property="data" column="gm_data"/>
+    <result property="groupId" column="gm_groups_id"/>
+    <result property="userId" column="gm_users_id"/>
+    <result property="insertInstant" column="gm_insert_instant"/>
+  </resultMap>
+
+  <sql id="select" databaseId="mysql">
+    SELECT
+      g.id                   AS g_id,
+      g.data                 AS g_data,
+      g.name                 AS g_name,
+      g.insert_instant       AS g_insert_instant,
+      g.last_update_instant  AS g_last_update_instant,
+      g.tenants_id           AS g_tenants_id,
+      ar.id                  AS ar_id,
+      ar.applications_id     AS ar_applications_id,
+      ar.insert_instant      AS ar_insert_instant,
+      ar.last_update_instant AS ar_last_update_instant,
+      ar.name                AS ar_name,
+      ar.description         AS ar_description,
+      ar.is_default          AS ar_is_default,
+      ar.is_super_role       AS ar_is_super_role
+      FROM `groups` AS g
+           INNER JOIN tenants AS t
+      ON t.id = g.tenants_id
+           LEFT OUTER JOIN group_application_roles AS gar
+      ON g.id = gar.groups_id
+           LEFT OUTER JOIN application_roles AS ar
+      ON gar.application_roles_id = ar.id
+  </sql>
+
+  <sql id="select" databaseId="postgresql">
+    SELECT
+      g.id                   AS g_id,
+      g.data                 AS g_data,
+      g.name                 AS g_name,
+      g.insert_instant       AS g_insert_instant,
+      g.last_update_instant  AS g_last_update_instant,
+      g.tenants_id           AS g_tenants_id,
+      ar.id                  AS ar_id,
+      ar.applications_id     AS ar_applications_id,
+      ar.insert_instant      AS ar_insert_instant,
+      ar.last_update_instant AS ar_last_update_instant,
+      ar.name                AS ar_name,
+      ar.description         AS ar_description,
+      ar.is_default          AS ar_is_default,
+      ar.is_super_role       AS ar_is_super_role
+      FROM groups AS g
+           INNER JOIN tenants AS t
+      ON t.id = g.tenants_id
+           LEFT OUTER JOIN group_application_roles AS gar
+      ON g.id = gar.groups_id
+           LEFT OUTER JOIN application_roles AS ar
+      ON gar.application_roles_id = ar.id
+  </sql>
+
+  <sql id="selectMember" databaseId="mysql">
+    SELECT
+      gm.id             AS gm_id,
+      gm.groups_id      AS gm_groups_id,
+      gm.data           AS gm_data,
+      gm.users_id       AS gm_users_id,
+      gm.insert_instant AS gm_insert_instant,
+      g.tenants_id      AS g_tenants_id
+      FROM group_members AS gm
+           JOIN `groups` AS g ON gm.groups_id = g.id
+  </sql>
+
+  <sql id="selectMember" databaseId="postgresql">
+    SELECT
+      gm.id             AS gm_id,
+      gm.groups_id      AS gm_groups_id,
+      gm.data           AS gm_data,
+      gm.users_id       AS gm_users_id,
+      gm.insert_instant AS gm_insert_instant,
+      g.tenants_id      AS g_tenants_id
+      FROM group_members AS gm
+           JOIN groups AS g ON gm.groups_id = g.id
+  </sql>
+
+  <select id="retrieveAll" resultMap="Group">
+    <include refid="select"/>
+    <if test="tenantId != null">
+      WHERE g.tenants_id = #{tenantId}
+    </if>
+    ORDER BY g.insert_instant DESC
+  </select>
+
+  <select id="retrieveById" resultMap="Group">
+    <include refid="select"/>
+    WHERE g.id = #{id}
+    <if test="tenantId != null">
+      AND g.tenants_id = #{tenantId}
+    </if>
+  </select>
+
+  <select id="retrieveByName" resultMap="Group">
+    <include refid="select"/>
+    WHERE g.name = #{name} AND g.tenants_id = #{tenantId}
+  </select>
+
+  <select id="retrieveExisting" resultMap="Group">
+    <include refid="select"/>
+    WHERE
+    <if test="id != null">
+      g.id != #{id} AND
+    </if>
+    g.name = #{name} AND g.tenants_id = #{tenantId}
+  </select>
+
+  <select id="retrieveByCriteria" resultMap="Group" databaseId="mysql">
+    WITH ids AS (
+      SELECT g.id
+      FROM `groups` g
+      INNER JOIN tenants AS t ON g.tenants_id = t.id
+      <where>
+        <if test="criteria.name != null">
+          <choose>
+            <when test="exact == true">
+              AND LOWER(g.name) = #{criteria.name}
+            </when>
+            <otherwise>
+              AND LOWER(g.name) LIKE #{criteria.name}
+            </otherwise>
+          </choose>
+        </if>
+
+        <if test="criteria.tenantId != null">
+          AND g.tenants_id = #{criteria.tenantId}
+        </if>
+      </where>
+      <if test="criteria.orderBy != null">
+        ORDER BY ${criteria.orderBy}
+      </if>
+      <if test="criteria.numberOfResults != null">
+        LIMIT #{criteria.numberOfResults}
+      </if>
+      <if test="criteria.startRow != null">
+        OFFSET #{criteria.startRow}
+      </if>
+    )
+    <include refid="select"/>
+    INNER JOIN ids ON ids.id = g.id
+    <if test="criteria.orderBy != null">
+      ORDER BY ${criteria.orderBy}
+    </if>
+  </select>
+
+  <select id="retrieveByCriteria" resultMap="Group" databaseId="postgresql">
+    WITH ids AS (
+      SELECT g.id
+      FROM groups g
+      INNER JOIN tenants AS t ON g.tenants_id = t.id
+      <where>
+        <if test="criteria.name != null">
+          <choose>
+            <when test="exact == true">
+              AND LOWER(g.name) = #{criteria.name}
+            </when>
+            <otherwise>
+              AND LOWER(g.name) LIKE #{criteria.name}
+            </otherwise>
+          </choose>
+        </if>
+        <if test="criteria.tenantId != null">
+          AND g.tenants_id = #{criteria.tenantId}
+        </if>
+      </where>
+      <if test="criteria.orderBy != null">
+        ORDER BY ${criteria.orderBy}
+      </if>
+      <if test="criteria.numberOfResults != null">
+        LIMIT #{criteria.numberOfResults}
+      </if>
+      <if test="criteria.startRow != null">
+        OFFSET #{criteria.startRow}
+      </if>
+    )
+    <include refid="select"/>
+    INNER JOIN ids ON ids.id = g.id
+    <if test="criteria.orderBy != null">
+      ORDER BY ${criteria.orderBy}
+    </if>
+  </select>
+
+  <select id="retrieveMembersByCriteria" resultMap="GroupMembership">
+    <include refid="selectMember"/>
+    <where>
+      <if test="groupId != null">
+        AND gm.groups_id = #{groupId}
+      </if>
+      <if test="userId != null">
+        AND gm.users_id = #{userId}
+      </if>
+      <if test="tenantId != null">
+        AND g.tenants_id = #{tenantId}
+      </if>
+    </where>
+    <if test="orderBy != null">
+      ORDER BY ${orderBy}
+    </if>
+    <if test="numberOfResults != null">
+      LIMIT #{numberOfResults}
+    </if>
+    <if test="startRow != null">
+      OFFSET #{startRow}
+    </if>
+  </select>
+
+  <select id="retrieveCountByCriteria" resultType="int" databaseId="postgresql">
+      SELECT COUNT(*)
+      FROM groups g
+      <where>
+        <if test="criteria.name != null">
+          <choose>
+            <when test="exact == true">
+              AND LOWER(g.name) = #{criteria.name}
+            </when>
+            <otherwise>
+              AND LOWER(g.name) LIKE #{criteria.name}
+            </otherwise>
+          </choose>
+        </if>
+        <if test="criteria.tenantId != null">
+          AND g.tenants_id = #{criteria.tenantId}
+        </if>
+      </where>
+  </select>
+
+  <select id="retrieveCountByCriteria" resultType="int" databaseId="mysql">
+      SELECT COUNT(*)
+      FROM `groups` g
+      <where>
+        <if test="criteria.name != null">
+          <choose>
+            <when test="exact == true">
+              AND LOWER(g.name) = #{criteria.name}
+            </when>
+            <otherwise>
+              AND LOWER(g.name) LIKE #{criteria.name}
+            </otherwise>
+          </choose>
+        </if>
+        <if test="criteria.tenantId != null">
+          AND g.tenants_id = #{criteria.tenantId}
+        </if>
+      </where>
+  </select>
+
+  <select id="retrieveMembersCountByCriteria" resultType="int">
+    SELECT COUNT(*) FROM (
+    <include refid="selectMember"/>
+    <where>
+      <if test="groupId != null">
+        AND gm.groups_id = #{groupId}
+      </if>
+      <if test="userId != null">
+        AND gm.users_id = #{userId}
+      </if>
+      <if test="tenantId != null">
+        AND g.tenants_id = #{tenantId}
+      </if>
+    </where>
+    ) AS g
+  </select>
+
+  <select id="retrieveMemberById" resultMap="GroupMembership">
+    <include refid="selectMember"/>
+    WHERE gm.id = #{membershipId}
+    <if test="tenantId != null">
+      AND g.tenants_id = #{tenantId}
+    </if>
+  </select>
+
+  <select id="retrieveMemberByUserId" resultMap="GroupMembership">
+    <include refid="selectMember"/>
+    WHERE gm.groups_id = #{groupId} AND gm.users_id = #{userId}
+    <if test="tenantId != null">
+      AND g.tenants_id = #{tenantId}
+    </if>
+  </select>
+
+  <select id="retrieveMembersByUserId" resultMap="GroupMembership">
+    <include refid="selectMember"/>
+    WHERE gm.users_id = #{userId}
+    <if test="tenantId != null">
+      AND g.tenants_id = #{tenantId}
+    </if>
+  </select>
+
+  <select id="retrieveMembersByUserIds" resultMap="GroupMembership">
+    <include refid="selectMember"/>
+    WHERE
+    gm.users_id IN  (
+    <foreach collection="userIds" item="userId" separator=",">
+      #{userId}
+    </foreach>
+    )
+  </select>
+
+  <select id="retrieveUserIdsByGroupId" resultType="java.util.UUID">
+    SELECT users_id
+      FROM group_members
+      WHERE groups_id = #{groupId}
+  </select>
+
+  <select id="retrieveMemberCountByGroupId" resultType="int">
+    SELECT count(users_id)
+      FROM group_members
+      WHERE groups_id = #{groupId}
+  </select>
+
+  <insert id="create" databaseId="mysql">
+    INSERT INTO `groups` (id, name, data, insert_instant, last_update_instant, tenants_id)
+      VALUES (#{id}, #{name}, #{data}, #{insertInstant}, #{lastUpdateInstant}, #{tenantId})
+  </insert>
+
+  <insert id="create" databaseId="postgresql">
+    INSERT INTO groups (id, name, data, insert_instant, last_update_instant, tenants_id)
+      VALUES (#{id}, #{name}, #{data}, #{insertInstant}, #{lastUpdateInstant}, #{tenantId})
+  </insert>
+
+  <insert id="createMembers" databaseId="mysql">
+    INSERT INTO group_members (id, groups_id, data, insert_instant, users_id)
+    VALUES
+    <foreach collection="members" item="member" separator=",">
+      (#{member.id}, #{member.groupId}, #{member.data}, #{member.insertInstant}, #{member.userId})
+    </foreach>
+    ON DUPLICATE KEY UPDATE id = VALUES(id)
+  </insert>
+
+  <insert id="createMembers" databaseId="postgresql">
+    INSERT INTO group_members (id, groups_id, data, insert_instant, users_id)
+    VALUES
+    <foreach collection="members" item="member" separator=",">
+      (#{member.id}, #{member.groupId}, #{member.data}, #{member.insertInstant}, #{member.userId})
+    </foreach>
+    ON CONFLICT DO NOTHING
+  </insert>
+
+  <insert id="createApplicationRoles">
+    INSERT INTO group_application_roles (application_roles_id, groups_id)
+    VALUES
+    <foreach collection="roleIds" item="roleId" separator=",">
+      (#{roleId}, #{groupId})
+    </foreach>
+  </insert>
+
+  <insert id="update" databaseId="mysql">
+    UPDATE `groups`
+    SET name              = #{name},
+      data                = #{data},
+      last_update_instant = #{lastUpdateInstant}
+      WHERE id = #{id}
+  </insert>
+
+  <insert id="update" databaseId="postgresql">
+    UPDATE groups
+    SET name              = #{name},
+      data                = #{data},
+      last_update_instant = #{lastUpdateInstant}
+      WHERE id = #{id}
+  </insert>
+
+  <delete id="delete" databaseId="mysql">
+    DELETE
+      FROM `groups`
+      WHERE id = #{id}
+  </delete>
+
+  <delete id="delete" databaseId="postgresql">
+    DELETE
+      FROM groups
+      WHERE id = #{id}
+  </delete>
+
+  <delete id="deleteGroupApplicationRoles">
+    DELETE
+      FROM group_application_roles
+      WHERE groups_id = #{groupId}
+  </delete>
+
+  <delete id="deleteRolesFromGroup">
+    DELETE FROM group_application_roles
+    WHERE groups_id = #{groupId} AND application_roles_id IN (
+    <foreach collection="roleIds" item="roleId" separator=",">
+      #{roleId}
+    </foreach>
+    )
+  </delete>
+
+  <delete id="deleteApplicationRolesByGroupId">
+    DELETE
+      FROM group_application_roles
+      WHERE groups_id = #{groupId}
+  </delete>
+
+  <delete id="deleteApplicationRolesByRoleIds">
+    DELETE FROM group_application_roles WHERE application_roles_id IN (
+    <foreach collection="roleIds" item="roleId" separator=",">
+      #{roleId}
+    </foreach>
+    )
+  </delete>
+
+  <delete id="deleteMembersById" databaseId="mysql">
+    DELETE gm FROM group_members AS gm
+    <if test="tenantId != null">
+      INNER JOIN `groups` AS g ON gm.groups_id = g.id
+    </if>
+    WHERE
+    <if test="tenantId != null">
+      g.tenants_id = #{tenantId} AND
+    </if>
+    gm.id IN (
+    <foreach collection="memberIds" item="memberId" separator=",">
+      #{memberId}
+    </foreach>
+    )
+  </delete>
+
+  <delete id="deleteMembersById" databaseId="postgresql">
+    DELETE FROM group_members AS gm
+    <if test="tenantId != null">
+      USING groups AS g
+    </if>
+    WHERE
+    <if test="tenantId != null">
+      g.id = gm.groups_id AND
+      g.tenants_id = #{tenantId} AND
+    </if>
+    gm.id IN (
+    <foreach collection="memberIds" item="memberId" separator=",">
+      #{memberId}
+    </foreach>
+    )
+  </delete>
+
+  <delete id="deleteAllMembershipsByUserId">
+    DELETE
+      FROM group_members
+      WHERE users_id = #{userId}
+  </delete>
+
+  <delete id="deleteMemberById">
+    DELETE
+      FROM group_members
+      WHERE id = #{id}
+  </delete>
+
+  <delete id="deleteMembersByGroupId">
+    DELETE
+      FROM group_members
+      WHERE groups_id = #{groupId}
+  </delete>
+</mapper>

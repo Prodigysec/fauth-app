@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c) 2020, FusionAuth, All Rights Reserved
+  -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.MessageTemplateMapper">
+  <resultMap id="MessageTemplate" type="io.fusionauth.domain.message.MessageTemplate">
+    <id column="m_id" property="id"/>
+    <result column="m_insert_instant" property="insertInstant"/>
+    <result column="m_last_update_instant" property="lastUpdateInstant"/>
+    <result column="m_name" property="name"/>
+    <result column="m_data" property="dataFromDatabase"/>
+    <discriminator javaType="int" column="m_type">
+      <case value="0" resultMap="_SMSMessageTemplate"/>
+      <case value="1" resultMap="_VoiceMessageTemplate"/>
+    </discriminator>
+  </resultMap>
+
+  <resultMap id="_SMSMessageTemplate" type="io.fusionauth.domain.message.sms.SMSMessageTemplate" extends="MessageTemplate">
+  </resultMap>
+
+  <resultMap id="_VoiceMessageTemplate" type="io.fusionauth.domain.message.voice.VoiceMessageTemplate" extends="MessageTemplate">
+  </resultMap>
+
+  <sql id="select">
+    SELECT
+      m.id AS m_id,
+      m.data AS m_data,
+      m.name AS m_name,
+      m.insert_instant AS m_insert_instant,
+      m.last_update_instant AS m_last_update_instant,
+      m.type AS m_type
+    FROM message_templates AS m
+  </sql>
+
+  <select id="retrieveById" resultMap="MessageTemplate">
+    <include refid="select"/>
+    WHERE id = #{id}
+  </select>
+
+  <select id="retrieveAll" resultMap="MessageTemplate">
+    <include refid="select"/>
+    ORDER BY name
+  </select>
+
+  <select id="retrieveByName" resultMap="MessageTemplate">
+    <include refid="select"/>
+    WHERE name = #{name}
+  </select>
+
+  <insert id="create">
+    INSERT INTO message_templates (id, data, insert_instant, last_update_instant, type, name)
+    VALUES (#{template.id}, #{template.dataToDatabase}, #{template.insertInstant}, #{template.lastUpdateInstant}, #{template.type}, #{template.name})
+  </insert>
+
+  <delete id="delete">
+    DELETE
+    FROM message_templates
+    WHERE id = #{template.id}
+  </delete>
+
+  <update id="update">
+    UPDATE message_templates
+    SET
+      data = #{template.dataToDatabase},
+      last_update_instant = #{template.lastUpdateInstant},
+      name = #{template.name}
+    WHERE id = #{template.id}
+  </update>
+</mapper>

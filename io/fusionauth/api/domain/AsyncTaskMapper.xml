@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.AsyncTaskMapper">
+  <resultMap id="AsyncTask" type="io.fusionauth.api.domain.AsyncTask">
+    <id property="id" column="t_id"/>
+    <result property="dataFromDatabase" column="t_data"/>
+    <result property="entityId" column="t_entity_id"/>
+    <result property="insertInstant" column="t_insert_instant"/>
+    <result property="lastUpdateInstant" column="t_last_update_instant"/>
+    <result property="nodeId" column="t_nodes_id"/>
+    <result property="status" column="t_status"/>
+    <result property="type" column="t_type"/>
+  </resultMap>
+
+  <sql id="select">
+    SELECT
+      t.id                  AS t_id,
+      t.data                AS t_data,
+      t.entity_id           AS t_entity_id,
+      t.insert_instant      AS t_insert_instant,
+      t.last_update_instant AS t_last_update_instant,
+      t.nodes_id            AS t_nodes_id,
+      t.status              AS t_status,
+      t.type                AS t_type
+    FROM asynchronous_tasks AS t
+  </sql>
+
+  <delete id="delete">
+    DELETE
+    FROM asynchronous_tasks
+    WHERE id = #{id}
+  </delete>
+
+  <insert id="create">
+    INSERT INTO asynchronous_tasks (id, data, entity_id, insert_instant, last_update_instant, status, type)
+    VALUES (#{id}, #{dataToDatabase}, #{entityId}, #{insertInstant}, #{lastUpdateInstant}, #{status}, #{type})
+  </insert>
+
+  <select id="retrieveAll" resultMap="AsyncTask">
+    <include refid="select"/>
+  </select>
+
+  <select id="retrieveById" resultMap="AsyncTask">
+    <include refid="select"/>
+    WHERE t.id = #{id}
+  </select>
+
+  <select id="retrieveByEntityId" resultMap="AsyncTask">
+    <include refid="select"/>
+    WHERE t.entity_id = #{entityId}
+  </select>
+
+  <select id="retrieveByStatus" resultMap="AsyncTask">
+    <include refid="select"/>
+    WHERE t.status = #{status}
+  </select>
+
+  <update id="update">
+    UPDATE asynchronous_tasks
+    SET
+    data                = #{dataToDatabase},
+    last_update_instant = #{lastUpdateInstant},
+    nodes_id            = #{nodeId},
+    status              = #{status}
+    WHERE id = #{id}
+  </update>
+
+  <update id="relinquishTasks">
+    UPDATE asynchronous_tasks
+    SET
+    nodes_id = NULL
+    WHERE nodes_id = #{nodeId}
+  </update>
+</mapper>

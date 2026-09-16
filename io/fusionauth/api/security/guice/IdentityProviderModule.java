@@ -1,0 +1,78 @@
+package io.fusionauth.api.security.guice;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.multibindings.MapBinder;
+import io.fusionauth.api.service.authentication.AppleIdentityProviderAuthenticationService;
+import io.fusionauth.api.service.authentication.EpicGamesIdentityProviderAuthenticationService;
+import io.fusionauth.api.service.authentication.ExternalJWTIdentityProviderAuthenticationService;
+import io.fusionauth.api.service.authentication.FacebookIdentityProviderAuthenticationService;
+import io.fusionauth.api.service.authentication.GoogleIdentityProviderAuthenticationService;
+import io.fusionauth.api.service.authentication.HYPRIdentityProviderAuthenticationService;
+import io.fusionauth.api.service.authentication.IdentityProviderAuthenticationService;
+import io.fusionauth.api.service.authentication.LinkedInIdentityProviderAuthenticationService;
+import io.fusionauth.api.service.authentication.NintendoIdentityProviderAuthenticationService;
+import io.fusionauth.api.service.authentication.OpenIdConnectIdentityProviderAuthenticationService;
+import io.fusionauth.api.service.authentication.SAMLv2IdPInitiatedIdentityProviderAuthenticationService;
+import io.fusionauth.api.service.authentication.SAMLv2IdentityProviderAuthenticationService;
+import io.fusionauth.api.service.authentication.SonyPSNIdentityProviderAuthenticationService;
+import io.fusionauth.api.service.authentication.SteamIdentityProviderAuthenticationService;
+import io.fusionauth.api.service.authentication.TwitchIdentityProviderAuthenticationService;
+import io.fusionauth.api.service.authentication.TwitterIdentityProviderAuthenticationService;
+import io.fusionauth.api.service.authentication.XboxIdentityProviderAuthenticationService;
+import io.fusionauth.api.service.identity.AppleIdentityProviderValidator;
+import io.fusionauth.api.service.identity.EpicGamesIdentityProviderValidator;
+import io.fusionauth.api.service.identity.ExternalJWTIdentityProviderValidator;
+import io.fusionauth.api.service.identity.FacebookIdentityProviderValidator;
+import io.fusionauth.api.service.identity.GoogleIdentityProviderValidator;
+import io.fusionauth.api.service.identity.HYPRIdentityProviderValidator;
+import io.fusionauth.api.service.identity.IdentityProviderValidator;
+import io.fusionauth.api.service.identity.LinkedInIdentityProviderValidator;
+import io.fusionauth.api.service.identity.NintendoIdentityProviderValidator;
+import io.fusionauth.api.service.identity.OpenIdConnectIdentityProviderValidator;
+import io.fusionauth.api.service.identity.SAMLv2IdPInitiatedIdentityProviderValidator;
+import io.fusionauth.api.service.identity.SAMLv2IdentityProviderValidator;
+import io.fusionauth.api.service.identity.SonyPSNIdentityProviderValidator;
+import io.fusionauth.api.service.identity.SteamIdentityProviderValidator;
+import io.fusionauth.api.service.identity.TwitchIdentityProviderValidator;
+import io.fusionauth.api.service.identity.TwitterIdentityProviderValidator;
+import io.fusionauth.api.service.identity.XboxIdentityProviderValidator;
+import io.fusionauth.domain.provider.IdentityProviderType;
+
+public class IdentityProviderModule extends AbstractModule {
+  protected void configure() {
+    MapBinder mapBinder1 = MapBinder.newMapBinder(binder(), IdentityProviderType.class, IdentityProviderAuthenticationService.class);
+    mapBinder1.addBinding(IdentityProviderType.Apple).to(AppleIdentityProviderAuthenticationService.class);
+    mapBinder1.addBinding(IdentityProviderType.EpicGames).to(EpicGamesIdentityProviderAuthenticationService.class);
+    mapBinder1.addBinding(IdentityProviderType.ExternalJWT).to(ExternalJWTIdentityProviderAuthenticationService.class);
+    mapBinder1.addBinding(IdentityProviderType.Facebook).to(FacebookIdentityProviderAuthenticationService.class);
+    mapBinder1.addBinding(IdentityProviderType.Google).to(GoogleIdentityProviderAuthenticationService.class);
+    mapBinder1.addBinding(IdentityProviderType.HYPR).to(HYPRIdentityProviderAuthenticationService.class);
+    mapBinder1.addBinding(IdentityProviderType.LinkedIn).to(LinkedInIdentityProviderAuthenticationService.class);
+    mapBinder1.addBinding(IdentityProviderType.Nintendo).to(NintendoIdentityProviderAuthenticationService.class);
+    mapBinder1.addBinding(IdentityProviderType.OpenIDConnect).to(OpenIdConnectIdentityProviderAuthenticationService.class);
+    mapBinder1.addBinding(IdentityProviderType.SAMLv2).to(SAMLv2IdentityProviderAuthenticationService.class);
+    mapBinder1.addBinding(IdentityProviderType.SAMLv2IdPInitiated).to(SAMLv2IdPInitiatedIdentityProviderAuthenticationService.class);
+    mapBinder1.addBinding(IdentityProviderType.SonyPSN).to(SonyPSNIdentityProviderAuthenticationService.class);
+    mapBinder1.addBinding(IdentityProviderType.Steam).to(SteamIdentityProviderAuthenticationService.class);
+    mapBinder1.addBinding(IdentityProviderType.Twitch).to(TwitchIdentityProviderAuthenticationService.class);
+    mapBinder1.addBinding(IdentityProviderType.Twitter).to(TwitterIdentityProviderAuthenticationService.class);
+    mapBinder1.addBinding(IdentityProviderType.Xbox).to(XboxIdentityProviderAuthenticationService.class);
+    MapBinder mapBinder2 = MapBinder.newMapBinder(binder(), IdentityProviderType.class, IdentityProviderValidator.class);
+    mapBinder2.addBinding(IdentityProviderType.Apple).to(AppleIdentityProviderValidator.class);
+    mapBinder2.addBinding(IdentityProviderType.EpicGames).to(EpicGamesIdentityProviderValidator.class);
+    mapBinder2.addBinding(IdentityProviderType.ExternalJWT).to(ExternalJWTIdentityProviderValidator.class);
+    mapBinder2.addBinding(IdentityProviderType.Facebook).to(FacebookIdentityProviderValidator.class);
+    mapBinder2.addBinding(IdentityProviderType.Google).to(GoogleIdentityProviderValidator.class);
+    mapBinder2.addBinding(IdentityProviderType.HYPR).to(HYPRIdentityProviderValidator.class);
+    mapBinder2.addBinding(IdentityProviderType.LinkedIn).to(LinkedInIdentityProviderValidator.class);
+    mapBinder2.addBinding(IdentityProviderType.Nintendo).to(NintendoIdentityProviderValidator.class);
+    mapBinder2.addBinding(IdentityProviderType.OpenIDConnect).to(OpenIdConnectIdentityProviderValidator.class);
+    mapBinder2.addBinding(IdentityProviderType.SAMLv2).to(SAMLv2IdentityProviderValidator.class);
+    mapBinder2.addBinding(IdentityProviderType.SAMLv2IdPInitiated).to(SAMLv2IdPInitiatedIdentityProviderValidator.class);
+    mapBinder2.addBinding(IdentityProviderType.SonyPSN).to(SonyPSNIdentityProviderValidator.class);
+    mapBinder2.addBinding(IdentityProviderType.Steam).to(SteamIdentityProviderValidator.class);
+    mapBinder2.addBinding(IdentityProviderType.Twitch).to(TwitchIdentityProviderValidator.class);
+    mapBinder2.addBinding(IdentityProviderType.Twitter).to(TwitterIdentityProviderValidator.class);
+    mapBinder2.addBinding(IdentityProviderType.Xbox).to(XboxIdentityProviderValidator.class);
+  }
+}

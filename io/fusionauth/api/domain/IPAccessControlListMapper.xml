@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c) 2021, FusionAuth, All Rights Reserved
+  -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.IPAccessControlListMapper">
+  <resultMap id="IPAddressRangeMapper" type="io.fusionauth.domain.IPAccessControlList">
+    <result property="id" column="ip_id"/>
+    <result property="name" column="ip_name"/>
+    <result property="dataFromDatabase" column="ip_data"/>
+    <result property="insertInstant" column="ip_insert_instant"/>
+    <result property="lastUpdateInstant" column="ip_last_update_instant"/>
+  </resultMap>
+</mapper>

@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.LoginMapper">
+  <insert id="createRawLogins">
+    INSERT INTO raw_logins (applications_id, instant, ip_address, identities_value, identities_type, users_id) VALUES
+    <foreach collection="rawLogins" item="rl" separator=",">
+      (#{rl.applicationId}, #{rl.instant}, #{rl.ipAddress}, #{rl.loginId}, #{rl.loginIdType}, #{rl.userId})
+    </foreach>
+  </insert>
+
+  <update id="replaceApplicationDailyActives" databaseId="mysql">
+    REPLACE INTO application_daily_active_users (applications_id, count, day) VALUES
+    <foreach collection="counts" item="count" separator=",">
+      (#{count.applicationId}, #{count.count}, #{count.period})
+    </foreach>
+  </update>
+
+  <update id="replaceApplicationDailyActives" databaseId="postgresql">
+    INSERT INTO application_daily_active_users (applications_id, count, day) VALUES
+    <foreach collection="counts" item="count" separator=",">
+      (#{count.applicationId}, #{count.count}, #{count.period})
+    </foreach>
+    ON CONFLICT (applications_id, day)
+    DO UPDATE SET count = EXCLUDED.count
+  </update>
+
+  <update id="replaceApplicationMonthlyActives" databaseId="mysql">
+    REPLACE INTO application_monthly_active_users (applications_id, count, month) VALUES
+    <foreach collection="counts" item="count" separator=",">
+      (#{count.applicationId}, #{count.count}, #{count.period})
+    </foreach>
+  </update>
+
+  <update id="replaceApplicationMonthlyActives" databaseId="postgresql">
+    INSERT INTO application_monthly_active_users (applications_id, count, month) VALUES
+    <foreach collection="counts" item="count" separator=",">
+      (#{count.applicationId}, #{count.count}, #{count.period})
+    </foreach>
+    ON CONFLICT (applications_id, month) DO
+    UPDATE SET count = EXCLUDED.count
+  </update>
+
+  <update id="replaceGlobalDailyActives" databaseId="mysql">
+    REPLACE INTO global_daily_active_users (count, day) VALUES
+    <foreach collection="counts" item="count" separator=",">
+      (#{count.count}, #{count.period})
+    </foreach>
+  </update>
+
+  <update id="replaceGlobalDailyActives" databaseId="postgresql">
+    INSERT INTO global_daily_active_users (count, day) VALUES
+    <foreach collection="counts" item="count" separator=",">
+      (#{count.count}, #{count.period})
+    </foreach>
+    ON CONFLICT (day) DO
+    UPDATE SET count = EXCLUDED.count
+  </update>
+
+  <update id="replaceGlobalMonthlyActives" databaseId="mysql">
+    REPLACE INTO global_monthly_active_users (count, month) VALUES
+    <foreach collection="counts" item="count" separator=",">
+      (#{count.count}, #{count.period})
+    </foreach>
+  </update>
+
+  <update id="replaceGlobalMonthlyActives" databaseId="postgresql">
+    INSERT INTO global_monthly_active_users (count, month) VALUES
+    <foreach collection="counts" item="count" separator=",">
+      (#{count.count}, #{count.period})
+    </foreach>
+    ON CONFLICT (month)
+    DO UPDATE SET count = EXCLUDED.count
+  </update>
+
+  <select id="retrieveRawLoginsByCriteriaCount" resultType="int">
+    SELECT count(instant)
+    FROM raw_logins AS rl
+    <where>
+      <if test="start != null">
+        AND instant &gt;= #{start}
+      </if>
+      <if test="end != null">
+        AND instant &lt;= #{end}
+      </if>
+      <if test="userId != null">
+        AND rl.users_id = #{userId}
+      </if>
+      <if test="applicationId != null">
+        AND rl.applications_id = #{applicationId}
+      </if>
+    </where>
+  </select>
+
+  <select id="retrieveRawLoginsByCriteria" resultType="io.fusionauth.domain.DisplayableRawLogin">
+    -- @formatter:off
+    SELECT
+      rl.applications_id            AS applicationId,
+      rl.instant                    AS instant,
+      rl.ip_address                 AS ipAddress,
+      rl.users_id                   AS userId,
+      a.name                        AS applicationName,
+<!--      TODO : ENG-2466 : Daniel : This works... may be slow (for legacy retrieval). Is COALESCE lazy? In other words if rl.identities_value exists, will
+                                  we still incur the performance penalty to retrieve legacy records?
+  -->
+      <!--
+      Resolve the login Id with precedence
+      1. raw_logins.identities_value
+      2. identities.value for a migrated identity (preferred order is email, username, phone number)
+      3. identities.email for unmigrated email identity
+      4. identities.username for unmigrated username identity
+      -->
+      COALESCE(rl.identities_value,
+        (
+          SELECT COALESCE(i.value, i.email, i.username)
+          FROM identities i
+          WHERE i.users_id = rl.users_id
+          -- prefer email loginId for legacy reporting
+          ORDER BY type
+          LIMIT 1
+        )
+      )                             AS loginId,
+      rl.identities_type              AS loginIdType
+
+    FROM (
+      SELECT
+        applications_id,
+        instant,
+        ip_address,
+        identities_value,
+        identities_type,
+        users_id
+      FROM raw_logins
+
+    <where>
+      <if test="start != null">
+        AND instant &gt;= #{start}
+      </if>
+      <if test="end != null">
+        AND instant &lt;= #{end}
+      </if>
+      <if test="userId != null">
+        AND users_id = #{userId}
+      </if>
+      <if test="applicationId != null">
+        AND applications_id = #{applicationId}
+      </if>
+    </where>
+
+      ORDER BY instant DESC
+        LIMIT #{numberOfResults}
+        OFFSET #{startRow}
+    ) AS rl
+    -- @formatter:on
+
+    LEFT OUTER JOIN applications AS a ON a.id = rl.applications_id
+
+    -- The ORDER BY also needs to be on the outer result. From what I can tell the order
+    -- is not guaranteed by the INNER SELECT, although it seems to work in MySQL. In PostgreSQL
+    -- the order is not consistent unless it is also specified here.
+    ORDER BY instant DESC
+  </select>
+
+  <insert id="upsertHourly" databaseId="mysql">
+    INSERT INTO hourly_logins (applications_id, count, hour) VALUES
+    <foreach collection="counts" item="count" separator=",">
+      (#{count.applicationId}, #{count.count}, #{count.period})
+    </foreach>
+    ON DUPLICATE KEY UPDATE count = count + VALUES(count)
+  </insert>
+
+  <insert id="upsertHourly" databaseId="postgresql">
+    INSERT INTO hourly_logins (applications_id, count, hour) VALUES
+    <foreach collection="counts" item="count" separator=",">
+      (#{count.applicationId}, #{count.count}, #{count.period})
+    </foreach>
+    ON CONFLICT (applications_id, hour) DO
+    UPDATE SET count = hourly_logins.count + EXCLUDED.count
+  </insert>
+
+  <insert id="upsertRawApplicationDailyActives" databaseId="mysql">
+    INSERT IGNORE INTO raw_application_daily_active_users (applications_id, day, users_id) VALUES
+    <foreach collection="users" item="user" separator=",">
+      (#{user.applicationId}, #{user.period}, #{user.userId})
+    </foreach>
+  </insert>
+
+  <insert id="upsertRawApplicationDailyActives" databaseId="postgresql">
+    INSERT INTO raw_application_daily_active_users (applications_id, day, users_id) VALUES
+    <foreach collection="users" item="user" separator=",">
+      (#{user.applicationId}, #{user.period}, #{user.userId})
+    </foreach>
+    ON CONFLICT DO NOTHING
+  </insert>
+
+  <insert id="upsertRawApplicationMonthlyActives" databaseId="mysql">
+    INSERT IGNORE INTO raw_application_monthly_active_users (applications_id, month, users_id) VALUES
+    <foreach collection="users" item="user" separator=",">
+      (#{user.applicationId}, #{user.period}, #{user.userId})
+    </foreach>
+  </insert>
+
+  <insert id="upsertRawApplicationMonthlyActives" databaseId="postgresql">
+    INSERT INTO raw_application_monthly_active_users (applications_id, month, users_id) VALUES
+    <foreach collection="users" item="user" separator=",">
+      (#{user.applicationId}, #{user.period}, #{user.userId})
+    </foreach>
+    ON CONFLICT DO NOTHING
+  </insert>
+
+  <insert id="upsertRawGlobalDailyActives" databaseId="mysql">
+    INSERT IGNORE INTO raw_global_daily_active_users (day, users_id) VALUES
+    <foreach collection="users" item="user" separator=",">
+      (#{user.period}, #{user.userId})
+    </foreach>
+  </insert>
+
+  <insert id="upsertRawGlobalDailyActives" databaseId="postgresql">
+    INSERT INTO raw_global_daily_active_users (day, users_id) VALUES
+    <foreach collection="users" item="user" separator=",">
+      (#{user.period}, #{user.userId})
+    </foreach>
+    ON CONFLICT DO NOTHING
+  </insert>
+
+  <insert id="upsertRawGlobalMonthlyActives" databaseId="mysql">
+    INSERT IGNORE INTO raw_global_monthly_active_users (month, users_id) VALUES
+    <foreach collection="users" item="user" separator=",">
+      (#{user.period}, #{user.userId})
+    </foreach>
+  </insert>
+
+  <insert id="upsertRawGlobalMonthlyActives" databaseId="postgresql">
+    INSERT INTO raw_global_monthly_active_users (month, users_id) VALUES
+    <foreach collection="users" item="user" separator=",">
+      (#{user.period}, #{user.userId})
+    </foreach>
+    ON CONFLICT DO NOTHING
+  </insert>
+</mapper>

@@ -1,0 +1,99 @@
+{
+  "attributes": [
+    {
+      "description": "A list of field errors.",
+      "multiValued": true,
+      "mutability": "immutable",
+      "name": "fieldErrors",
+      "required": false,
+      "returned": "default",
+      "subAttributes": [
+        {
+          "description": "A list of field errors.",
+          "multiValued": true,
+          "mutability": "immutable",
+          "name": "object.fieldName",
+          "required": false,
+          "returned": "default",
+          "attributes": [
+            {
+              "caseExact": false,
+              "description": "The FusionAuth error code",
+              "multiValued": false,
+              "mutability": "immutable",
+              "name": "code",
+              "required": false,
+              "returned": "default",
+              "type": "string",
+              "uniqueness": "none"
+            },
+            {
+              "caseExact": false,
+              "description": "The FusionAuth error message",
+              "multiValued": false,
+              "mutability": "immutable",
+              "name": "message",
+              "required": false,
+              "returned": "default",
+              "type": "string",
+              "uniqueness": "none"
+            }
+          ]
+        }
+      ],
+      "type": "complex"
+    },
+    {
+      "description": "A list of general errors.",
+      "multiValued": true,
+      "mutability": "immutable",
+      "name": "generalErrors",
+      "required": false,
+      "returned": "default",
+      "subAttributes": [
+        {
+          "caseExact": false,
+          "description": "The FusionAuth error code",
+          "multiValued": false,
+          "mutability": "immutable",
+          "name": "code",
+          "required": false,
+          "returned": "default",
+          "type": "string",
+          "uniqueness": "none"
+        },
+        {
+          "caseExact": false,
+          "description": "The FusionAuth error data",
+          "multiValued": true,
+          "mutability": "immutable",
+          "name": "data",
+          "required": false,
+          "returned": "default",
+          "type": "complex",
+          "uniqueness": "none"
+        },
+        {
+          "caseExact": false,
+          "description": "The FusionAuth error message",
+          "multiValued": false,
+          "mutability": "immutable",
+          "name": "message",
+          "required": false,
+          "returned": "default",
+          "type": "string",
+          "uniqueness": "none"
+        }
+      ],
+      "type": "complex"
+    }
+  ],
+  "description": "FusionAuth Errors",
+  "id": "urn:ietf:params:scim:schemas:extension:fusionauth:2.0:Error",
+  "meta": {
+    "location": "${baseURL}/api/scim/resource/v2/Schemas/urn:ietf:params:scim:schemas:extension:fusionauth:2.0:Error",
+    "resourceType": "Schema"
+  },
+  "name": "FusionAuthError"
+}
+

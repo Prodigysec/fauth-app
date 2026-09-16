@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c) 2018-2019, FusionAuth, All Rights Reserved
+  -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.RegistrationCountMapper">
+  <insert id="bulkUpsertApplication" databaseId="mysql">
+    INSERT INTO application_registration_counts (applications_id, count, decremented_count, hour) VALUES
+    <foreach collection="counts" item="count" separator=",">
+      (#{count.applicationId}, #{count.count}, #{count.decrementedCount}, #{count.period})
+    </foreach>
+    ON DUPLICATE KEY UPDATE count = count + VALUES(count), decremented_count = decremented_count + VALUES(decremented_count)
+  </insert>
+
+  <insert id="bulkUpsertApplication" databaseId="postgresql">
+    INSERT INTO application_registration_counts (applications_id, count, decremented_count, hour) VALUES
+    <foreach collection="counts" item="count" separator=",">
+      (#{count.applicationId}, #{count.count}, #{count.decrementedCount}, #{count.period})
+    </foreach>
+    ON CONFLICT (applications_id, hour) DO UPDATE SET count = application_registration_counts.count + EXCLUDED.count, decremented_count = application_registration_counts.decremented_count + EXCLUDED.decremented_count
+  </insert>
+
+  <insert id="bulkUpsertGlobal" databaseId="mysql">
+    INSERT INTO global_registration_counts (count, decremented_count, hour) VALUES
+    <foreach collection="counts" item="count" separator=",">
+      (#{count.count}, #{count.decrementedCount}, #{count.period})
+    </foreach>
+    ON DUPLICATE KEY UPDATE count = count + VALUES(count), decremented_count = decremented_count + VALUES(decremented_count)
+  </insert>
+
+  <insert id="bulkUpsertGlobal" databaseId="postgresql">
+    INSERT INTO global_registration_counts (count, decremented_count, hour) VALUES
+    <foreach collection="counts" item="count" separator=",">
+      (#{count.count}, #{count.decrementedCount}, #{count.period})
+    </foreach>
+    ON CONFLICT (hour) DO UPDATE SET count = global_registration_counts.count + EXCLUDED.count, decremented_count = global_registration_counts.decremented_count + EXCLUDED.decremented_count
+  </insert>
+</mapper>

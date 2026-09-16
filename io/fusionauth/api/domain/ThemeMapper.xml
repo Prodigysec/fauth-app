@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.ThemeMapper">
+  <resultMap id="Theme" type="io.fusionauth.domain.Theme">
+    <id column="id" property="id"/>
+    <result column="data" property="dataFromDatabase"/>
+    <result column="insert_instant" property="insertInstant"/>
+    <result column="last_update_instant" property="lastUpdateInstant"/>
+    <result column="name" property="name"/>
+  </resultMap>
+
+  <sql id="select">
+    SELECT * FROM themes
+  </sql>
+
+  <insert id="create">
+    INSERT INTO themes (id, data, insert_instant, last_update_instant, name)
+    VALUES (#{id}, #{dataToDatabase}, #{insertInstant}, #{lastUpdateInstant}, #{name})
+  </insert>
+
+  <select id="retrieveAll" resultMap="Theme">
+    <include refid="select"/>
+    ORDER BY insert_instant DESC
+  </select>
+
+  <select id="retrieveByCriteria" resultMap="Theme">
+    <include refid="select"/>
+    <where>
+      <if test="name != null">
+        AND LOWER(name) LIKE #{name}
+      </if>
+    </where>
+    <if test="orderBy != null">
+      ORDER BY ${orderBy}
+    </if>
+    <if test="numberOfResults != null">
+      LIMIT #{numberOfResults}
+    </if>
+    <if test="startRow != null">
+      OFFSET #{startRow}
+    </if>
+  </select>
+
+  <select id="retrieveCountByCriteria" resultType="int">
+    SELECT COUNT(*)
+    FROM themes
+    <where>
+      <if test="name != null">
+        AND LOWER(name) LIKE #{name}
+      </if>
+    </where>
+  </select>
+
+  <select id="retrieveById" resultMap="Theme">
+    <include refid="select"/>
+    WHERE id = #{id}
+  </select>
+
+  <select id="retrieveExistingByName" resultMap="Theme">
+    <include refid="select"/>
+    WHERE name = #{name}
+    <if test="id != null">
+      AND id != #{id}
+    </if>
+  </select>
+
+  <update id="update">
+    UPDATE themes SET
+      data = #{dataToDatabase},
+      last_update_instant = #{lastUpdateInstant},
+      name = #{name}
+    WHERE id = #{id}
+  </update>
+
+  <delete id="delete">
+    DELETE FROM themes WHERE id = #{id}
+  </delete>
+</mapper>

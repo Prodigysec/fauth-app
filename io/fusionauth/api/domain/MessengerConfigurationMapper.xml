@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c) 2020, FusionAuth, All Rights Reserved
+  -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.MessengerConfigurationMapper">
+  <resultMap id="Messenger" type="io.fusionauth.domain.messenger.BaseMessengerConfiguration">
+    <id property="id" column="m_id"/>
+    <result property="dataFromDatabase" column="m_data"/>
+    <result property="insertInstant" column="m_insert_instant"/>
+    <result property="lastUpdateInstant" column="m_last_update_instant"/>
+    <result property="name" column="m_name"/>
+    <discriminator javaType="int" column="m_type">
+      <case value="0" resultMap="_GenericMessenger"/>
+      <case value="1" resultMap="_KafkaMessenger"/>
+      <case value="2" resultMap="_TwilioMessenger"/>
+    </discriminator>
+  </resultMap>
+
+  <resultMap id="_GenericMessenger" type="io.fusionauth.domain.messenger.GenericMessengerConfiguration" extends="Messenger">
+  </resultMap>
+
+  <!--  If you want to retrieve columns that are not in the BaseConnector class, you will want to build a new result map with the extra fields-->
+  <resultMap id="_TwilioMessenger" type="io.fusionauth.domain.messenger.TwilioMessengerConfiguration" extends="Messenger">
+  </resultMap>
+
+  <!--  If you want to retrieve columns that are not in the BaseConnector class, you will want to build a new result map with the extra fields-->
+  <resultMap id="_KafkaMessenger" type="io.fusionauth.domain.messenger.KafkaMessengerConfiguration" extends="Messenger">
+  </resultMap>
+
+  <sql id="select">
+    SELECT
+      m.id AS m_id,
+      m.data AS m_data,
+      m.name AS m_name,
+      m.insert_instant AS m_insert_instant,
+      m.last_update_instant AS m_last_update_instant,
+      m.type AS m_type
+    FROM messengers AS m
+  </sql>
+
+  <update id="update">
+    UPDATE messengers
+    SET
+    data = #{dataToDatabase},
+    last_update_instant = #{lastUpdateInstant},
+    name = #{name}
+    WHERE id = #{id}
+  </update>
+
+  <select id="retrieveAll" resultMap="Messenger">
+    <include refid="select"/>
+    ORDER BY m.name ASC
+  </select>
+
+  <select id="retrieveById" resultMap="Messenger">
+    <include refid="select"/>
+    WHERE m.id = #{id}
+  </select>
+
+  <select id="retrieveByType" resultMap="Messenger">
+    <include refid="select"/>
+    WHERE m.type = #{type}
+  </select>
+
+  <select id="retrieveExistingByName" resultMap="Messenger">
+    <include refid="select"/>
+    WHERE
+    <if test="id != null">
+      m.id != #{id} AND
+    </if>
+    m.name = #{name}
+  </select>
+
+  <insert id="create">
+    INSERT INTO messengers
+        (id, data, insert_instant, last_update_instant, name, type)
+        VALUES (#{id}, #{dataToDatabase}, #{insertInstant}, #{lastUpdateInstant}, #{name}, #{type})
+  </insert>
+
+  <delete id="delete">
+    DELETE
+    FROM messengers
+    WHERE id = #{id}
+  </delete>
+</mapper>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration scan="true" scanPeriod="60 seconds">
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+    <encoder>
+      <pattern>%d{"yyyy-MM-dd hh:mm:ss.SSS a"} %-5level %logger{75} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <append>true</append>
+    <encoder>
+      <pattern>%d{"yyyy-MM-dd hh:mm:ss.SSS a"} %-5level %logger{75} - %msg%n</pattern>
+    </encoder>
+    <file>${fusionauth.log.directory}/fusionauth-app.log</file>
+    <immediateFlush>true</immediateFlush>
+    <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+      <fileNamePattern>${fusionauth.log.directory}/fusionauth-app.%i.log.gz</fileNamePattern>
+      <maxIndex>10</maxIndex>
+      <minIndex>1</minIndex>
+    </rollingPolicy>
+    <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+      <maxFileSize>100MB</maxFileSize>
+    </triggeringPolicy>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="FILE"/>
+    <appender-ref ref="STDOUT"/>
+  </root>
+
+  <!-- Kafka has a lot of INFO logging which ends up being really noise -->
+  <logger name="org.apache.kafka.common" level="ERROR"/>
+  <logger name="org.apache.kafka.clients" level="ERROR"/>
+
+  <include file="${fusionauth.config.directory}/logback-include.xml" optional="true"/>
+
+</configuration>

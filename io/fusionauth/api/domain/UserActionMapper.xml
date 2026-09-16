@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c) 2018, FusionAuth, All Rights Reserved
+  -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.UserActionMapper">
+  <resultMap id="UserAction" type="io.fusionauth.domain.UserAction" autoMapping="true">
+    <!-- These are the only properties that can't be auto-mapped. MyBatis handles all the others. -->
+    <result property="cancelEmailTemplateId" column="cancel_email_templates_id"/>
+    <result property="endEmailTemplateId" column="end_email_templates_id"/>
+    <result property="modifyEmailTemplateId" column="modify_email_templates_id"/>
+    <result property="startEmailTemplateId" column="start_email_templates_id"/>
+  </resultMap>
+</mapper>

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.RefreshTokenMapper">
+  <resultMap id="RefreshToken" type="io.fusionauth.api.domain.mybatis._RefreshToken">
+    <id property="id" column="rt_id"/>
+    <result property="token" column="rt_token"/>
+    <result property="tokenHash" column="rt_token_hash"/>
+    <result property="tokenHashN1" column="rt_token_hash_n1"/>
+    <result property="tokenSeed" column="rt_token_seed"/>
+    <result property="userId" column="rt_users_id"/>
+    <result property="applicationId" column="rt_applications_id"/>
+    <result property="insertInstant" column="rt_insert_instant"/>
+    <result property="dataFromDatabase" column="rt_data"/>
+    <result property="startInstant" column="rt_start_instant"/>
+    <result property="tenantId" column="rt_tenants_id"/>
+  </resultMap>
+
+  <sql id="select">
+    SELECT rt.id                     AS rt_id,
+      rt.data                        AS rt_data,
+      COALESCE(rt.token_text, token) AS rt_token,
+      rt.token_hash                  AS rt_token_hash,
+      rt.token_hash_n1               AS rt_token_hash_n1,
+      rt.token_seed                  AS rt_token_seed,
+      rt.users_id                    AS rt_users_id,
+      rt.applications_id             AS rt_applications_id,
+      rt.insert_instant              AS rt_insert_instant,
+      rt.start_instant               AS rt_start_instant,
+      rt.tenants_id                  AS rt_tenants_id
+      FROM refresh_tokens AS rt
+  </sql>
+
+  <insert id="create">
+    INSERT INTO refresh_tokens (id, tenants_id, token_hash, token_seed, token_text, users_id, applications_id, insert_instant, data, start_instant)
+      VALUES (#{refreshToken.id}, #{refreshToken.tenantId}, #{refreshToken.hash}, #{refreshToken.seed}, #{refreshToken.token}, #{refreshToken.userId}, #{refreshToken.applicationId}, #{refreshToken.insertInstant}, #{refreshToken.dataToDatabase}, #{refreshToken.startInstant})
+  </insert>
+
+  <!--@formatter:off-->
+  <insert id="delete">
+    DELETE
+      FROM refresh_tokens
+    -- Note: MySQL will is an index_merge by building a union between the two unique constraints.
+    --          Using union(refresh_tokens_uk_2,refresh_tokens_uk_1); Using where
+    --       PostgreSQL will build n "bitmap heap scan OR" using the two indicies.
+    --          BitmapOr -> [  Bitmap Index Scan on refresh_tokens_uk_2, Bitmap Index Scan on refresh_tokens_uk_1 ]
+      WHERE token_hash = #{hash} OR token = #{token}
+  </insert>
+  <!--@formatter:on-->
+
+  <insert id="update">
+    UPDATE refresh_tokens
+    SET token = NULL,
+    <if test="keepLastHash">
+      token_hash_n1 = token_hash,
+    </if>
+    token_hash = #{refreshToken.hash},
+    -- Only set this on update when not yet set.
+    -- This is just ensuring we never rotate the seed after creation.
+    token_seed = CASE WHEN token_seed IS NULL THEN #{refreshToken.seed} ELSE token_seed END,
+    token_text = #{refreshToken.token},
+    data = #{refreshToken.dataToDatabase},
+    start_instant = #{refreshToken.startInstant}
+    WHERE id = #{refreshToken.id}
+  </insert>
+
+  <!--@formatter:off-->
+  <select id="retrieve" resultMap="RefreshToken">
+    <include refid="select"/>
+    WHERE rt.token_hash = #{hash} OR rt.token = #{token}
+  </select>
+  <!--@formatter:on-->
+
+  <!--@formatter:off-->
+  <select id="retrieveUsingSeed" resultMap="RefreshToken">
+    <include refid="select"/>
+    WHERE rt.token_seed = substring(#{token}, 1, 20) OR rt.token_hash = #{hash} OR rt.token = #{token}
+  </select>
+  <!--@formatter:on-->
+
+  <select id="retrieveForUpdateUsingSeed" resultMap="RefreshToken">
+    <include refid="select"/>
+    WHERE rt.token_seed = substring(#{token}, 1, 20) OR rt.token_hash = #{hash} OR rt.token = #{token}
+    FOR UPDATE
+  </select>
+
+  <select id="retrieveById" resultMap="RefreshToken">
+    <include refid="select"/>
+    WHERE rt.id = #{tokenId}
+  </select>
+
+  <select id="retrieveApplicationIdsByUserId">
+    SELECT DISTINCT applications_id
+      FROM refresh_tokens
+      WHERE users_id = #{userId} AND applications_id IS NOT NULL
+  </select>
+
+  <select id="retrieveByUserId" resultMap="RefreshToken">
+    <include refid="select"/>
+    WHERE rt.users_id = #{userId}
+    ORDER BY rt.insert_instant DESC
+    LIMIT #{numberOfResults}
+  </select>
+
+  <select id="retrieveByApplicationId" resultMap="RefreshToken">
+    <include refid="select"/>
+    WHERE rt.applications_id = #{applicationId}
+  </select>
+
+  <select id="retrieveByUserIdAndApplicationId" resultMap="RefreshToken">
+    <include refid="select"/>
+    WHERE rt.applications_id = #{applicationId} AND rt.users_id = #{userId}
+  </select>
+
+  <insert id="createBulk">
+    INSERT INTO refresh_tokens (id, token_hash, token_text, users_id, applications_id, insert_instant, data, start_instant, tenants_id)
+    VALUES
+    <foreach collection="refreshTokens" item="refreshToken" separator=",">
+      (#{refreshToken.id}, #{refreshToken.hash}, #{refreshToken.token}, #{refreshToken.userId}, #{refreshToken.applicationId},
+      #{refreshToken.insertInstant},
+      #{refreshToken.dataToDatabase}, #{refreshToken.startInstant}, #{refreshToken.tenantId})
+    </foreach>
+  </insert>
+
+</mapper>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.WebhookAttemptLogMapper">
+  <resultMap id="WebhookAttemptLog" type="io.fusionauth.domain.WebhookAttemptLog">
+    <id property="id" column="wa_id"/>
+    <result property="dataFromDatabase" column="wa_data"/>
+    <result property="endInstant" column="wa_end_instant"/>
+    <result property="startInstant" column="wa_start_instant"/>
+    <result property="webhookEventLogId" column="wa_webhook_event_logs_id"/>
+    <result property="webhookId" column="wa_webhooks_id"/>
+  </resultMap>
+
+  <sql id="select">
+    SELECT
+      wa.id                           AS wa_id,
+      wa.data                         AS wa_data,
+      wa.end_instant                  AS wa_end_instant,
+      wa.start_instant                AS wa_start_instant,
+      wa.webhook_event_logs_id        AS wa_webhook_event_logs_id,
+      wa.webhooks_id                  AS wa_webhooks_id
+    FROM webhook_attempt_logs AS wa
+  </sql>
+
+  <insert id="create">
+    INSERT INTO webhook_attempt_logs (id, data, end_instant, start_instant, webhook_event_logs_id, webhooks_id)
+    VALUES (#{id}, #{dataToDatabase}, #{endInstant}, #{startInstant}, #{webhookEventLogId}, #{webhookId})
+  </insert>
+
+  <delete id="deleteByWebhookEventLogIds">
+    DELETE FROM webhook_attempt_logs WHERE webhook_event_logs_id IN (
+    <foreach collection="webhookEventLogIds" item="webhookEventLogId" separator=",">
+      #{webhookEventLogId}
+    </foreach>
+    )
+  </delete>
+
+  <select id="retrieveAll" resultMap="WebhookAttemptLog">
+    <include refid="select"/>
+    ORDER BY wa.start_instant DESC
+  </select>
+
+  <select id="retrieveById" resultMap="WebhookAttemptLog">
+    <include refid="select"/>
+    WHERE wa.id = #{id}
+  </select>
+
+  <select id="retrieveByWebhookEventLogId" resultMap="WebhookAttemptLog">
+    <include refid="select"/>
+    WHERE wa.webhook_event_logs_id = #{webhookEventLogId}
+  </select>
+
+</mapper>

@@ -1,0 +1,534 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.TenantMapper">
+
+  <resultMap id="ConnectorPolicy" type="io.fusionauth.domain.connector.ConnectorPolicy">
+    <result property="connectorId" column="ct_connectors_id"/>
+    <result property="dataFromDatabase" column="ct_data"/>
+  </resultMap>
+
+  <resultMap id="Tenant" type="io.fusionauth.domain.Tenant">
+    <id property="id" column="t_id"/>
+    <result property="accessControlConfiguration.uiIPAccessControlListId" column="t_ui_ip_access_control_lists_id"/>
+    <result property="dataFromDatabase" column="t_data"/>
+    <result property="emailConfiguration.adminTwoFactorMethodRemoveEmailTemplateId" column="t_admin_two_factor_method_remove_email_templates_id"/>
+    <result property="emailConfiguration.emailUpdateEmailTemplateId" column="t_email_update_email_templates_id"/>
+    <result property="emailConfiguration.emailVerifiedEmailTemplateId" column="t_email_verified_email_templates_id"/>
+    <result property="emailConfiguration.forgotPasswordEmailTemplateId" column="t_forgot_password_email_templates_id"/>
+    <result property="emailConfiguration.loginIdInUseOnCreateEmailTemplateId" column="t_login_id_in_use_on_create_email_templates_id"/>
+    <result property="emailConfiguration.loginIdInUseOnUpdateEmailTemplateId" column="t_login_id_in_use_on_update_email_templates_id"/>
+    <result property="emailConfiguration.loginNewDeviceEmailTemplateId" column="t_login_new_device_email_templates_id"/>
+    <result property="emailConfiguration.loginSuspiciousEmailTemplateId" column="t_login_suspicious_email_templates_id"/>
+    <result property="emailConfiguration.passwordlessEmailTemplateId" column="t_passwordless_email_templates_id"/>
+    <result property="emailConfiguration.passwordResetSuccessEmailTemplateId" column="t_password_reset_success_email_templates_id"/>
+    <result property="emailConfiguration.passwordUpdateEmailTemplateId" column="t_password_update_email_templates_id"/>
+    <result property="emailConfiguration.setPasswordEmailTemplateId" column="t_set_password_email_templates_id"/>
+    <result property="emailConfiguration.twoFactorMethodAddEmailTemplateId" column="t_two_factor_method_add_email_templates_id"/>
+    <result property="emailConfiguration.twoFactorMethodRemoveEmailTemplateId" column="t_two_factor_method_remove_email_templates_id"/>
+    <result property="emailConfiguration.verificationEmailTemplateId" column="t_verification_email_templates_id"/>
+    <result property="failedAuthenticationConfiguration.userActionId" column="t_failed_authentication_user_actions_id"/>
+    <result property="familyConfiguration.confirmChildEmailTemplateId" column="t_confirm_child_email_templates_id"/>
+    <result property="familyConfiguration.familyRequestEmailTemplateId" column="t_family_request_email_templates_id"/>
+    <result property="familyConfiguration.parentRegistrationEmailTemplateId" column="t_parent_registration_email_templates_id"/>
+    <result property="formConfiguration.adminUserFormId" column="t_admin_user_forms_id"/>
+    <result property="insertInstant" column="t_insert_instant"/>
+    <result property="jwtConfiguration.accessTokenKeyId" column="t_access_token_signing_keys_id"/>
+    <result property="jwtConfiguration.idTokenKeyId" column="t_id_token_signing_keys_id"/>
+    <result property="lambdaConfiguration.loginValidationId" column="t_login_validation_lambdas_id"/>
+    <result property="lambdaConfiguration.multiFactorRequirementId" column="t_multi_factor_requirement_lambdas_id"/>
+    <result property="lambdaConfiguration.scimEnterpriseUserRequestConverterId" column="t_scim_enterprise_user_request_converter_lambdas_id"/>
+    <result property="lambdaConfiguration.scimEnterpriseUserResponseConverterId" column="t_scim_enterprise_user_response_converter_lambdas_id"/>
+    <result property="lambdaConfiguration.scimGroupRequestConverterId" column="t_scim_group_request_converter_lambdas_id"/>
+    <result property="lambdaConfiguration.scimGroupResponseConverterId" column="t_scim_group_response_converter_lambdas_id"/>
+    <result property="lambdaConfiguration.scimUserRequestConverterId" column="t_scim_user_request_converter_lambdas_id"/>
+    <result property="lambdaConfiguration.scimUserResponseConverterId" column="t_scim_user_response_converter_lambdas_id"/>
+    <result property="lastUpdateInstant" column="t_last_update_instant"/>
+    <result property="multiFactorConfiguration.email.templateId" column="t_multi_factor_email_message_templates_id"/>
+    <result property="multiFactorConfiguration.sms.messengerId" column="t_multi_factor_sms_messengers_id"/>
+    <result property="multiFactorConfiguration.sms.templateId" column="t_multi_factor_sms_message_templates_id"/>
+    <result property="multiFactorConfiguration.voice.messengerId" column="t_multi_factor_voice_messengers_id"/>
+    <result property="multiFactorConfiguration.voice.templateId" column="t_multi_factor_voice_message_templates_id"/>
+    <result property="name" column="t_name"/>
+    <result property="oauthConfiguration.clientCredentialsAccessTokenPopulateLambdaId" column="t_client_credentials_access_token_populate_lambdas_id"/>
+    <result property="phoneConfiguration.messengerId" column="t_phone_configuration_messengers_id"/>
+    <result property="phoneConfiguration.adminTwoFactorMethodRemoveTemplateId" column="t_phone_configuration_admin_mfa_method_remove_templates_id"/>
+    <result property="phoneConfiguration.forgotPasswordTemplateId" column="t_phone_configuration_forgot_password_templates_id"/>
+    <result property="phoneConfiguration.identityUpdateTemplateId" column="t_phone_configuration_identity_update_templates_id"/>
+    <result property="phoneConfiguration.loginIdInUseOnCreateTemplateId" column="t_phone_configuration_login_id_in_use_on_create_templates_id"/>
+    <result property="phoneConfiguration.loginIdInUseOnUpdateTemplateId" column="t_phone_configuration_login_id_in_use_on_update_templates_id"/>
+    <result property="phoneConfiguration.loginNewDeviceTemplateId" column="t_phone_configuration_login_new_device_templates_id"/>
+    <result property="phoneConfiguration.loginSuspiciousTemplateId" column="t_phone_configuration_login_suspicious_templates_id"/>
+    <result property="phoneConfiguration.passwordlessTemplateId" column="t_phone_configuration_passwordless_templates_id"/>
+    <result property="phoneConfiguration.passwordResetSuccessTemplateId" column="t_phone_configuration_password_reset_success_templates_id"/>
+    <result property="phoneConfiguration.passwordUpdateTemplateId" column="t_phone_configuration_password_update_templates_id"/>
+    <result property="phoneConfiguration.setPasswordTemplateId" column="t_phone_configuration_set_password_templates_id"/>
+    <result property="phoneConfiguration.twoFactorMethodAddTemplateId" column="t_phone_configuration_two_factor_method_add_templates_id"/>
+    <result property="phoneConfiguration.twoFactorMethodRemoveTemplateId" column="t_phone_configuration_two_factor_method_remove_templates_id"/>
+    <result property="phoneConfiguration.verificationCompleteTemplateId" column="t_phone_configuration_verification_complete_templates_id"/>
+    <result property="phoneConfiguration.verificationTemplateId" column="t_phone_configuration_verification_templates_id"/>
+    <result property="scimServerConfiguration.clientEntityTypeId" column="t_scim_client_entity_types_id"/>
+    <result property="scimServerConfiguration.serverEntityTypeId" column="t_scim_server_entity_types_id"/>
+    <result property="themeId" column="t_themes_id"/>
+    <collection property="connectorPolicies" ofType="io.fusionauth.domain.connector.ConnectorPolicy">
+      <id property="connectorId" column="ct_connectors_id"/>
+      <result property="dataFromDatabase" column="ct_data"/>
+    </collection>
+    <!--
+      Verification key ids are loaded via a single LEFT JOIN on tenants_verification_keys (see the "select" sql fragment),
+      not N+1 nested selects. Each typed list reads the same joined keys_id column, partitioned by type using a CASE-aliased
+      column plus notNullColumn so only rows of the matching type contribute. Because the tenant select also joins the
+      connectors_tenants fan-out, the keys_id columns are repeated across connector rows; the nested <id> dedupes those
+      repeats so each key appears once. Read queries order the joined rows by "type, is_default DESC, keys_id" so the
+      default key is the first element of each list.
+    -->
+    <collection property="jwtConfiguration.accessTokenVerificationKeyIds" ofType="java.util.UUID" notNullColumn="t_access_token_verification_keys_id">
+      <id column="t_access_token_verification_keys_id"/>
+      <result column="t_access_token_verification_keys_id"/>
+    </collection>
+    <collection property="jwtConfiguration.idTokenVerificationKeyIds" ofType="java.util.UUID" notNullColumn="t_id_token_verification_keys_id">
+      <id column="t_id_token_verification_keys_id"/>
+      <result column="t_id_token_verification_keys_id"/>
+    </collection>
+  </resultMap>
+
+  <sql id="select">
+    SELECT t.id                                                              AS t_id,
+      t.access_token_signing_keys_id                                         AS t_access_token_signing_keys_id,
+      t.admin_two_factor_method_remove_email_templates_id                    AS t_admin_two_factor_method_remove_email_templates_id,
+      t.data                                                                 AS t_data,
+      t.client_credentials_access_token_populate_lambdas_id                  AS t_client_credentials_access_token_populate_lambdas_id,
+      t.confirm_child_email_templates_id                                     AS t_confirm_child_email_templates_id,
+      t.email_update_email_templates_id                                      AS t_email_update_email_templates_id,
+      t.email_verified_email_templates_id                                    AS t_email_verified_email_templates_id,
+      t.failed_authentication_user_actions_id                                AS t_failed_authentication_user_actions_id,
+      t.family_request_email_templates_id                                    AS t_family_request_email_templates_id,
+      t.forgot_password_email_templates_id                                   AS t_forgot_password_email_templates_id,
+      t.id_token_signing_keys_id                                             AS t_id_token_signing_keys_id,
+      t.insert_instant                                                       AS t_insert_instant,
+      t.login_id_in_use_on_create_email_templates_id                         AS t_login_id_in_use_on_create_email_templates_id,
+      t.login_id_in_use_on_update_email_templates_id                         AS t_login_id_in_use_on_update_email_templates_id,
+      t.login_validation_lambdas_id                                          AS t_login_validation_lambdas_id,
+      t.last_update_instant                                                  AS t_last_update_instant,
+      t.login_new_device_email_templates_id                                  AS t_login_new_device_email_templates_id,
+      t.login_suspicious_email_templates_id                                  AS t_login_suspicious_email_templates_id,
+      t.multi_factor_email_message_templates_id                              AS t_multi_factor_email_message_templates_id,
+      t.multi_factor_requirement_lambdas_id                                  AS t_multi_factor_requirement_lambdas_id,
+      t.multi_factor_sms_message_templates_id                                AS t_multi_factor_sms_message_templates_id,
+      t.multi_factor_sms_messengers_id                                       AS t_multi_factor_sms_messengers_id,
+      t.multi_factor_voice_message_templates_id                              AS t_multi_factor_voice_message_templates_id,
+      t.multi_factor_voice_messengers_id                                     AS t_multi_factor_voice_messengers_id,
+      t.name                                                                 AS t_name,
+      t.parent_registration_email_templates_id                               AS t_parent_registration_email_templates_id,
+      t.passwordless_email_templates_id                                      AS t_passwordless_email_templates_id,
+      t.password_reset_success_email_templates_id                            AS t_password_reset_success_email_templates_id,
+      t.password_update_email_templates_id                                   AS t_password_update_email_templates_id,
+      t.phone_configuration_forgot_password_templates_id                     AS t_phone_configuration_forgot_password_templates_id,
+      t.phone_configuration_admin_two_factor_method_remove_templates_id      AS t_phone_configuration_admin_mfa_method_remove_templates_id,
+      t.phone_configuration_identity_update_templates_id                     AS t_phone_configuration_identity_update_templates_id,
+      t.phone_configuration_login_id_in_use_on_create_templates_id           AS t_phone_configuration_login_id_in_use_on_create_templates_id,
+      t.phone_configuration_login_id_in_use_on_update_templates_id           AS t_phone_configuration_login_id_in_use_on_update_templates_id,
+      t.phone_configuration_login_new_device_templates_id                    AS t_phone_configuration_login_new_device_templates_id,
+      t.phone_configuration_login_suspicious_templates_id                    AS t_phone_configuration_login_suspicious_templates_id,
+      t.phone_configuration_messengers_id                                    AS t_phone_configuration_messengers_id,
+      t.phone_configuration_password_reset_success_templates_id              AS t_phone_configuration_password_reset_success_templates_id,
+      t.phone_configuration_password_update_templates_id                     AS t_phone_configuration_password_update_templates_id,
+      t.phone_configuration_passwordless_templates_id                        AS t_phone_configuration_passwordless_templates_id,
+      t.phone_configuration_set_password_templates_id                        AS t_phone_configuration_set_password_templates_id,
+      t.phone_configuration_two_factor_method_add_templates_id               AS t_phone_configuration_two_factor_method_add_templates_id,
+      t.phone_configuration_two_factor_method_remove_templates_id            AS t_phone_configuration_two_factor_method_remove_templates_id,
+      t.phone_configuration_verification_complete_templates_id               AS t_phone_configuration_verification_complete_templates_id,
+      t.phone_configuration_verification_templates_id                        AS t_phone_configuration_verification_templates_id,
+      t.scim_enterprise_user_request_converter_lambdas_id                    AS t_scim_enterprise_user_request_converter_lambdas_id,
+      t.scim_enterprise_user_response_converter_lambdas_id                   AS t_scim_enterprise_user_response_converter_lambdas_id,
+      t.scim_group_request_converter_lambdas_id                              AS t_scim_group_request_converter_lambdas_id,
+      t.scim_group_response_converter_lambdas_id                             AS t_scim_group_response_converter_lambdas_id,
+      t.scim_user_request_converter_lambdas_id                               AS t_scim_user_request_converter_lambdas_id,
+      t.scim_user_response_converter_lambdas_id                              AS t_scim_user_response_converter_lambdas_id,
+      t.set_password_email_templates_id                                      AS t_set_password_email_templates_id,
+      t.scim_client_entity_types_id                                          AS t_scim_client_entity_types_id,
+      t.scim_server_entity_types_id                                          AS t_scim_server_entity_types_id,
+      t.themes_id                                                            AS t_themes_id,
+      t.two_factor_method_add_email_templates_id                             AS t_two_factor_method_add_email_templates_id,
+      t.two_factor_method_remove_email_templates_id                          AS t_two_factor_method_remove_email_templates_id,
+      t.ui_ip_access_control_lists_id                                        AS t_ui_ip_access_control_lists_id,
+      t.verification_email_templates_id                                      AS t_verification_email_templates_id,
+      ct.connectors_id                                                       AS ct_connectors_id,
+      ct.data                                                                AS ct_data,
+      ct.sequence                                                            AS ct_sequence,
+      t.admin_user_forms_id                                                  AS t_admin_user_forms_id,
+      CASE WHEN tvk.type = 'AccessTokenVerification' THEN tvk.keys_id END     AS t_access_token_verification_keys_id,
+      CASE WHEN tvk.type = 'IdTokenVerification' THEN tvk.keys_id END         AS t_id_token_verification_keys_id
+      FROM tenants AS t
+             LEFT OUTER JOIN connectors_tenants AS ct
+      ON t.id = ct.tenants_id
+             LEFT OUTER JOIN tenants_verification_keys AS tvk
+      ON t.id = tvk.tenants_id
+  </sql>
+
+  <sql id="select_connectors_tenants">
+    SELECT ct.connectors_id AS ct_connectors_id,
+      ct.data               AS ct_data
+      FROM connectors_tenants AS ct
+  </sql>
+
+  <!--@formatter:off-->
+  <insert id="create">
+    INSERT INTO tenants
+             (id,
+              access_token_signing_keys_id,
+              admin_two_factor_method_remove_email_templates_id,
+              client_credentials_access_token_populate_lambdas_id,
+              confirm_child_email_templates_id,
+              data,
+              email_update_email_templates_id,
+              email_verified_email_templates_id,
+              failed_authentication_user_actions_id,
+              family_request_email_templates_id,
+              forgot_password_email_templates_id,
+              id_token_signing_keys_id,
+              insert_instant,
+              last_update_instant,
+              login_id_in_use_on_create_email_templates_id,
+              login_id_in_use_on_update_email_templates_id,
+              login_new_device_email_templates_id,
+              login_suspicious_email_templates_id,
+              name,
+              parent_registration_email_templates_id,
+              passwordless_email_templates_id,
+              password_reset_success_email_templates_id,
+              password_update_email_templates_id,
+              set_password_email_templates_id,
+              multi_factor_email_message_templates_id,
+              multi_factor_requirement_lambdas_id,
+              multi_factor_sms_message_templates_id,
+              multi_factor_sms_messengers_id,
+              multi_factor_voice_message_templates_id,
+              multi_factor_voice_messengers_id,
+              login_validation_lambdas_id,
+              phone_configuration_messengers_id,
+              phone_configuration_forgot_password_templates_id,
+              phone_configuration_admin_two_factor_method_remove_templates_id,
+              phone_configuration_identity_update_templates_id,
+              phone_configuration_login_id_in_use_on_create_templates_id,
+              phone_configuration_login_id_in_use_on_update_templates_id,
+              phone_configuration_login_new_device_templates_id,
+              phone_configuration_login_suspicious_templates_id,
+              phone_configuration_password_reset_success_templates_id,
+              phone_configuration_password_update_templates_id,
+              phone_configuration_passwordless_templates_id,
+              phone_configuration_set_password_templates_id,
+              phone_configuration_two_factor_method_add_templates_id,
+              phone_configuration_two_factor_method_remove_templates_id,
+              phone_configuration_verification_complete_templates_id,
+              phone_configuration_verification_templates_id,
+              scim_enterprise_user_request_converter_lambdas_id ,
+              scim_enterprise_user_response_converter_lambdas_id,
+              scim_group_request_converter_lambdas_id,
+              scim_group_response_converter_lambdas_id,
+              scim_user_request_converter_lambdas_id,
+              scim_user_response_converter_lambdas_id,
+              scim_client_entity_types_id,
+              scim_server_entity_types_id,
+              themes_id,
+              two_factor_method_add_email_templates_id,
+              two_factor_method_remove_email_templates_id,
+              ui_ip_access_control_lists_id,
+              verification_email_templates_id,
+              admin_user_forms_id)
+      VALUES (#{id},
+              #{jwtConfiguration.accessTokenKeyId},
+              #{emailConfiguration.adminTwoFactorMethodRemoveEmailTemplateId},
+              #{oauthConfiguration.clientCredentialsAccessTokenPopulateLambdaId},
+              #{familyConfiguration.confirmChildEmailTemplateId},
+              #{dataToDatabase},
+              #{emailConfiguration.emailUpdateEmailTemplateId},
+              #{emailConfiguration.emailVerifiedEmailTemplateId},
+              #{failedAuthenticationConfiguration.userActionId},
+              #{familyConfiguration.familyRequestEmailTemplateId},
+              #{emailConfiguration.forgotPasswordEmailTemplateId},
+              #{jwtConfiguration.idTokenKeyId},
+              #{insertInstant},
+              #{lastUpdateInstant},
+              #{emailConfiguration.loginIdInUseOnCreateEmailTemplateId},
+              #{emailConfiguration.loginIdInUseOnUpdateEmailTemplateId},
+              #{emailConfiguration.loginNewDeviceEmailTemplateId},
+              #{emailConfiguration.loginSuspiciousEmailTemplateId},
+              #{name},
+              #{familyConfiguration.parentRegistrationEmailTemplateId},
+              #{emailConfiguration.passwordlessEmailTemplateId},
+              #{emailConfiguration.passwordResetSuccessEmailTemplateId},
+              #{emailConfiguration.passwordUpdateEmailTemplateId},
+              #{emailConfiguration.setPasswordEmailTemplateId},
+              #{multiFactorConfiguration.email.templateId},
+              #{lambdaConfiguration.multiFactorRequirementId},
+              #{multiFactorConfiguration.sms.templateId},
+              #{multiFactorConfiguration.sms.messengerId},
+              #{multiFactorConfiguration.voice.templateId},
+              #{multiFactorConfiguration.voice.messengerId},
+              #{lambdaConfiguration.loginValidationId},
+              #{phoneConfiguration.messengerId},
+              #{phoneConfiguration.forgotPasswordTemplateId},
+              #{phoneConfiguration.adminTwoFactorMethodRemoveTemplateId},
+              #{phoneConfiguration.identityUpdateTemplateId},
+              #{phoneConfiguration.loginIdInUseOnCreateTemplateId},
+              #{phoneConfiguration.loginIdInUseOnUpdateTemplateId},
+              #{phoneConfiguration.loginNewDeviceTemplateId},
+              #{phoneConfiguration.loginSuspiciousTemplateId},
+              #{phoneConfiguration.passwordResetSuccessTemplateId},
+              #{phoneConfiguration.passwordUpdateTemplateId},
+              #{phoneConfiguration.passwordlessTemplateId},
+              #{phoneConfiguration.setPasswordTemplateId},
+              #{phoneConfiguration.twoFactorMethodAddTemplateId},
+              #{phoneConfiguration.twoFactorMethodRemoveTemplateId},
+              #{phoneConfiguration.verificationCompleteTemplateId},
+              #{phoneConfiguration.verificationTemplateId},
+              #{lambdaConfiguration.scimEnterpriseUserRequestConverterId},
+              #{lambdaConfiguration.scimEnterpriseUserResponseConverterId},
+              #{lambdaConfiguration.scimGroupRequestConverterId},
+              #{lambdaConfiguration.scimGroupResponseConverterId},
+              #{lambdaConfiguration.scimUserRequestConverterId},
+              #{lambdaConfiguration.scimUserResponseConverterId},
+              #{scimServerConfiguration.clientEntityTypeId},
+              #{scimServerConfiguration.serverEntityTypeId},
+              #{themeId},
+              #{emailConfiguration.twoFactorMethodAddEmailTemplateId},
+              #{emailConfiguration.twoFactorMethodRemoveEmailTemplateId},
+              #{accessControlConfiguration.uiIPAccessControlListId},
+              #{emailConfiguration.verificationEmailTemplateId},
+              #{formConfiguration.adminUserFormId})
+  </insert>
+  <!--@formatter:on-->
+
+  <insert id="createVerificationKeys">
+    INSERT INTO tenants_verification_keys (tenants_id, keys_id, type, is_default) VALUES
+    <foreach collection="keyIds" item="keyId" index="i" separator=",">
+      (#{tenantId}, #{keyId}, #{type},
+      <choose><when test="markDefault and i == 0">true</when><otherwise>false</otherwise></choose>)
+    </foreach>
+  </insert>
+
+  <insert id="createConnectorPolicies">
+    INSERT INTO connectors_tenants (tenants_id, connectors_id, data, sequence) VALUES
+    <foreach collection="connectorPolicies" item="connectorPolicy" separator="," index="index">
+      (#{tenantId}, #{connectorPolicy.connectorId}, #{connectorPolicy.dataToDatabase}, #{index})
+    </foreach>
+  </insert>
+
+  <select id="existsById">
+    SELECT 1
+    FROM tenants
+    WHERE id = #{id}
+  </select>
+
+  <select id="retrieveAll" resultMap="Tenant">
+    <include refid="select"/>
+    ORDER BY t.id, ct.sequence ASC, tvk.type, tvk.is_default DESC, tvk.keys_id
+  </select>
+
+  <select id="retrieveAllUsingEntityTypes" resultMap="Tenant">
+    <include refid="select"/>
+    WHERE t.scim_server_entity_types_id IS NOT  NULL OR t.scim_client_entity_types_id IS NOT  NULL
+    ORDER BY t.id, ct.sequence ASC, tvk.type, tvk.is_default DESC, tvk.keys_id
+  </select>
+
+  <select id="retrieveConnectorPolicies" resultMap="ConnectorPolicy">
+    <include refid="select_connectors_tenants"/>
+    WHERE tenants_id = #{tenantId}
+    ORDER BY sequence ASC
+  </select>
+
+  <select id="retrieveCount" resultType="int">
+    SELECT count(id)
+      FROM tenants
+  </select>
+
+  <select id="retrieveById" resultMap="Tenant">
+    <include refid="select"/>
+    WHERE id = #{id}
+    ORDER BY t.id, ct.sequence ASC, tvk.type, tvk.is_default DESC, tvk.keys_id
+  </select>
+
+  <select id="retrieveTenantByApplicationId" resultMap="Tenant">
+    <include refid="select"/>
+    WHERE id = (SELECT tenants_id FROM applications WHERE id = #{applicationId})
+    ORDER BY t.id, ct.sequence ASC, tvk.type, tvk.is_default DESC, tvk.keys_id
+  </select>
+
+  <select id="retrieveTenantIdsUsingFormById" resultType="java.util.UUID">
+    SELECT id
+      FROM tenants AS t
+      WHERE t.admin_user_forms_id = #{formId}
+  </select>
+
+  <select id="retrieveTenantIdsUsingMessengerById" resultType="java.util.UUID">
+    SELECT id
+      FROM tenants AS t
+      WHERE t.multi_factor_sms_messengers_id = #{messengerId} OR
+            t.phone_configuration_messengers_id = #{messengerId}
+  </select>
+
+  <select id="retrieveTenantIdsUsingSMSMessengerById" resultType="java.util.UUID">
+    SELECT id
+      FROM tenants AS t
+      WHERE t.multi_factor_sms_messengers_id = #{messengerId} OR
+            t.phone_configuration_messengers_id = #{messengerId}
+  </select>
+
+  <select id="retrieveTenantIdsUsingVoiceMessengerById" resultType="java.util.UUID">
+    SELECT id
+      FROM tenants AS t
+      WHERE t.multi_factor_voice_messengers_id = #{messengerId}
+  </select>
+
+  <select id="retrieveByCriteria" resultMap="Tenant">
+  <!-- Create a CTE to filter, sort and paginate the tenant Ids, then join with main SELECT -->
+    WITH ids AS (
+    	SELECT id
+    	FROM tenants t
+    	<where>
+        <if test="name != null">
+          AND LOWER(t.name) LIKE #{name}
+        </if>
+      </where>
+      <if test="orderBy != null">
+        ORDER BY ${orderBy}
+      </if>
+      <if test="numberOfResults != null">
+        LIMIT #{numberOfResults}
+      </if>
+      <if test="startRow != null">
+        OFFSET #{startRow}
+      </if>
+    )
+    <include refid="select"/>
+    INNER JOIN ids ON ids.id = t.id
+    <choose>
+      <when test="orderBy != null">
+        ORDER BY ${orderBy}, t.id, ct.sequence ASC, tvk.type, tvk.is_default DESC, tvk.keys_id
+      </when>
+      <otherwise>
+        ORDER BY t.id, ct.sequence ASC, tvk.type, tvk.is_default DESC, tvk.keys_id
+      </otherwise>
+    </choose>
+  </select>
+
+  <select id="retrieveByName" resultMap="Tenant">
+    <include refid="select"/>
+    WHERE name = #{name}
+    ORDER BY t.id, ct.sequence ASC, tvk.type, tvk.is_default DESC, tvk.keys_id
+  </select>
+
+  <select id="retrieveCountByCriteria" resultType="int">
+      SELECT COUNT(*)
+      FROM tenants t
+      <where>
+        <if test="name != null">
+          AND LOWER(t.name) LIKE #{name}
+        </if>
+      </where>
+  </select>
+
+  <select id="retrieveExistingByName" resultMap="Tenant">
+    <include refid="select"/>
+    WHERE name = #{name}
+    <if test="id != null">
+      AND id != #{id}
+    </if>
+    ORDER BY t.id, ct.sequence ASC, tvk.type, tvk.is_default DESC, tvk.keys_id
+  </select>
+
+  <select id="retrieveTenantIdByConnectorId" resultType="java.util.UUID">
+    SELECT tenants_id
+      FROM connectors_tenants
+      WHERE connectors_id = #{connectorId}
+  </select>
+
+  <delete id="delete">
+    DELETE
+      FROM tenants
+      WHERE id = #{id}
+  </delete>
+
+  <delete id="deleteConnectorPolicies">
+    DELETE
+      FROM connectors_tenants
+      WHERE tenants_id = #{tenantId}
+  </delete>
+
+  <update id="updateState" databaseId="mysql">
+    UPDATE tenants
+    SET data = JSON_SET(CAST(data AS JSON),
+                        '$.state', #{state})
+      WHERE id = #{id}
+  </update>
+
+  <update id="updateState" databaseId="postgresql">
+    UPDATE tenants
+    SET data = JSONB_SET(data::JSONB, '{state}', TO_JSONB(#{state}::TEXT))
+      WHERE id = #{id}
+  </update>
+
+  <update id="update">
+    UPDATE tenants
+    SET access_token_signing_keys_id                             = #{tenant.jwtConfiguration.accessTokenKeyId},
+      admin_two_factor_method_remove_email_templates_id               = #{tenant.emailConfiguration.adminTwoFactorMethodRemoveEmailTemplateId},
+      admin_user_forms_id                                             = #{tenant.formConfiguration.adminUserFormId},
+      client_credentials_access_token_populate_lambdas_id             = #{tenant.oauthConfiguration.clientCredentialsAccessTokenPopulateLambdaId},
+      confirm_child_email_templates_id                                = #{tenant.familyConfiguration.confirmChildEmailTemplateId},
+      data                                                            = #{tenant.dataToDatabase},
+      email_update_email_templates_id                                 = #{tenant.emailConfiguration.emailUpdateEmailTemplateId},
+      email_verified_email_templates_id                               = #{tenant.emailConfiguration.emailVerifiedEmailTemplateId},
+      failed_authentication_user_actions_id                           = #{tenant.failedAuthenticationConfiguration.userActionId},
+      family_request_email_templates_id                               = #{tenant.familyConfiguration.familyRequestEmailTemplateId},
+      forgot_password_email_templates_id                              = #{tenant.emailConfiguration.forgotPasswordEmailTemplateId},
+      id_token_signing_keys_id                                        = #{tenant.jwtConfiguration.idTokenKeyId},
+      last_update_instant                                             = #{tenant.lastUpdateInstant},
+      login_validation_lambdas_id                                     = #{tenant.lambdaConfiguration.loginValidationId},
+      login_id_in_use_on_create_email_templates_id                    = #{tenant.emailConfiguration.loginIdInUseOnCreateEmailTemplateId},
+      login_id_in_use_on_update_email_templates_id                    = #{tenant.emailConfiguration.loginIdInUseOnUpdateEmailTemplateId},
+      login_new_device_email_templates_id                             = #{tenant.emailConfiguration.loginNewDeviceEmailTemplateId},
+      login_suspicious_email_templates_id                             = #{tenant.emailConfiguration.loginSuspiciousEmailTemplateId},
+      multi_factor_email_message_templates_id                         = #{tenant.multiFactorConfiguration.email.templateId},
+      multi_factor_requirement_lambdas_id                             = #{tenant.lambdaConfiguration.multiFactorRequirementId},
+      multi_factor_sms_message_templates_id                           = #{tenant.multiFactorConfiguration.sms.templateId},
+      multi_factor_sms_messengers_id                                  = #{tenant.multiFactorConfiguration.sms.messengerId},
+      multi_factor_voice_message_templates_id                         = #{tenant.multiFactorConfiguration.voice.templateId},
+      multi_factor_voice_messengers_id                                = #{tenant.multiFactorConfiguration.voice.messengerId},
+      name                                                            = #{tenant.name},
+      parent_registration_email_templates_id                          = #{tenant.familyConfiguration.parentRegistrationEmailTemplateId},
+      password_reset_success_email_templates_id                       = #{tenant.emailConfiguration.passwordResetSuccessEmailTemplateId},
+      password_update_email_templates_id                              = #{tenant.emailConfiguration.passwordUpdateEmailTemplateId},
+      passwordless_email_templates_id                                 = #{tenant.emailConfiguration.passwordlessEmailTemplateId},
+      phone_configuration_messengers_id                               = #{tenant.phoneConfiguration.messengerId},
+      phone_configuration_forgot_password_templates_id                = #{tenant.phoneConfiguration.forgotPasswordTemplateId},
+      phone_configuration_admin_two_factor_method_remove_templates_id = #{tenant.phoneConfiguration.adminTwoFactorMethodRemoveTemplateId},
+      phone_configuration_identity_update_templates_id                = #{tenant.phoneConfiguration.identityUpdateTemplateId},
+      phone_configuration_login_id_in_use_on_create_templates_id      = #{tenant.phoneConfiguration.loginIdInUseOnCreateTemplateId},
+      phone_configuration_login_id_in_use_on_update_templates_id      = #{tenant.phoneConfiguration.loginIdInUseOnUpdateTemplateId},
+      phone_configuration_login_new_device_templates_id               = #{tenant.phoneConfiguration.loginNewDeviceTemplateId},
+      phone_configuration_login_suspicious_templates_id               = #{tenant.phoneConfiguration.loginSuspiciousTemplateId},
+      phone_configuration_password_reset_success_templates_id         = #{tenant.phoneConfiguration.passwordResetSuccessTemplateId},
+      phone_configuration_password_update_templates_id                = #{tenant.phoneConfiguration.passwordUpdateTemplateId},
+      phone_configuration_passwordless_templates_id                   = #{tenant.phoneConfiguration.passwordlessTemplateId},
+      phone_configuration_set_password_templates_id                   = #{tenant.phoneConfiguration.setPasswordTemplateId},
+      phone_configuration_two_factor_method_add_templates_id          = #{tenant.phoneConfiguration.twoFactorMethodAddTemplateId},
+      phone_configuration_two_factor_method_remove_templates_id       = #{tenant.phoneConfiguration.twoFactorMethodRemoveTemplateId},
+      phone_configuration_verification_complete_templates_id          = #{tenant.phoneConfiguration.verificationCompleteTemplateId},
+      phone_configuration_verification_templates_id                   = #{tenant.phoneConfiguration.verificationTemplateId},
+      set_password_email_templates_id                                 = #{tenant.emailConfiguration.setPasswordEmailTemplateId},
+      scim_enterprise_user_request_converter_lambdas_id               = #{tenant.lambdaConfiguration.scimEnterpriseUserRequestConverterId},
+      scim_enterprise_user_response_converter_lambdas_id              = #{tenant.lambdaConfiguration.scimEnterpriseUserResponseConverterId},
+      scim_group_request_converter_lambdas_id                         = #{tenant.lambdaConfiguration.scimGroupRequestConverterId},
+      scim_group_response_converter_lambdas_id                        = #{tenant.lambdaConfiguration.scimGroupResponseConverterId},
+      scim_user_request_converter_lambdas_id                          = #{tenant.lambdaConfiguration.scimUserRequestConverterId},
+      scim_user_response_converter_lambdas_id                         = #{tenant.lambdaConfiguration.scimUserResponseConverterId},
+      scim_client_entity_types_id                                     = #{tenant.scimServerConfiguration.clientEntityTypeId},
+      scim_server_entity_types_id                                     = #{tenant.scimServerConfiguration.serverEntityTypeId},
+      themes_id                                                       = #{tenant.themeId},
+      two_factor_method_add_email_templates_id                        = #{tenant.emailConfiguration.twoFactorMethodAddEmailTemplateId},
+      two_factor_method_remove_email_templates_id                     = #{tenant.emailConfiguration.twoFactorMethodRemoveEmailTemplateId},
+      ui_ip_access_control_lists_id                                   = #{tenant.accessControlConfiguration.uiIPAccessControlListId},
+      verification_email_templates_id                                 = #{tenant.emailConfiguration.verificationEmailTemplateId}
+      WHERE id = #{tenant.id}
+  </update>
+</mapper>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.UserCommentMapper">
+  <resultMap id="UserComment" type="io.fusionauth.domain.UserComment">
+    <id property="id" column="u_id"/>
+    <result property="comment" column="u_comment"/>
+    <result property="insertInstant" column="u_insert_instant"/>
+    <result property="userId" column="u_users_id"/>
+    <result property="commenterId" column="u_commenter_id"/>
+  </resultMap>
+
+  <sql id="select">
+    SELECT
+      u.id                 AS u_id,
+      u.comment            AS u_comment,
+      u.insert_instant     AS u_insert_instant,
+      u.users_id           AS u_users_id,
+      u.commenter_id       AS u_commenter_id
+    FROM user_comments     AS u
+  </sql>
+
+  <select id="retrieveAllForUser" resultMap="UserComment">
+    <include refid="select"/>
+    WHERE u.users_id = #{userId}
+  </select>
+
+  <select id="retrieveByCriteria" resultMap="UserComment">
+    <include refid="select"/>
+    INNER JOIN users uu ON uu.id = u.users_id
+    <where>
+      <if test="comment != null">
+        AND LOWER(u.comment) LIKE #{comment}
+      </if>
+      <if test="userId != null">
+        AND u.users_id = #{userId}
+      </if>
+      <if test="commenterId != null">
+        AND u.commenter_id = #{commenterId}
+      </if>
+      <if test="tenantId != null">
+        AND uu.tenants_id = #{tenantId}
+      </if>
+    </where>
+    <if test="orderBy != null">
+      ORDER BY ${orderBy}
+    </if>
+    <if test="numberOfResults != null">
+      LIMIT #{numberOfResults}
+    </if>
+    <if test="startRow != null">
+      OFFSET #{startRow}
+    </if>
+  </select>
+
+  <select id="retrieveCountByCriteria" resultType="int">
+    SELECT COUNT(*)
+    FROM user_comments u
+    <if test="tenantId != null">
+      INNER JOIN users uu ON uu.id = u.users_id
+    </if>
+    <where>
+      <if test="comment != null">
+        AND LOWER(u.comment) LIKE #{comment}
+      </if>
+      <if test="userId != null">
+        AND u.users_id = #{userId}
+      </if>
+      <if test="commenterId != null">
+        AND u.commenter_id = #{commenterId}
+      </if>
+      <if test="tenantId != null">
+        AND uu.tenants_id = #{tenantId}
+      </if>
+    </where>
+  </select>
+
+</mapper>

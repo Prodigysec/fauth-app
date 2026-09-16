@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.TenantManagerMapper">
+  <resultMap id="TenantManagerConfiguration" type="io.fusionauth.domain.tenantManager.TenantManagerConfiguration">
+    <result property="dataFromDatabase" column="data"/>
+    <result property="insertInstant" column="insert_instant"/>
+    <result property="lastUpdateInstant" column="last_update_instant"/>
+    <result property="attributeFormId" column="tenant_manager_attribute_forms_id"/>
+  </resultMap>
+
+  <resultMap id="TenantManagerApplicationConfiguration" type="io.fusionauth.domain.tenantManager.TenantManagerApplicationConfiguration">
+    <id property="applicationId" column="tma_applications_id"/>
+  </resultMap>
+
+  <resultMap id="TenantManagerIdentityProviderTypeConfiguration" type="io.fusionauth.domain.tenantManager.TenantManagerIdentityProviderTypeConfiguration">
+    <id property="type" column="tm_idp_type_type"/>
+    <result property="enabled" column="tm_idp_type_enabled"/>
+    <result property="dataFromDatabase" column="tm_idp_type_data"/>
+    <result property="insertInstant" column="tm_idp_type_insert_instant"/>
+    <result property="lastUpdateInstant" column="tm_idp_type_last_update_instant"/>
+  </resultMap>
+
+  <sql id="selectTenantManagerIdentityProviderTypeConfigurations">
+    SELECT
+      tm_idp_type.type                AS tm_idp_type_type,
+      tm_idp_type.enabled             AS tm_idp_type_enabled,
+      tm_idp_type.data                AS tm_idp_type_data,
+      tm_idp_type.insert_instant      AS tm_idp_type_insert_instant,
+      tm_idp_type.last_update_instant AS tm_idp_type_last_update_instant
+    FROM tenant_manager_identity_provider_type_configurations AS tm_idp_type
+  </sql>
+
+  <select id="retrieveTenantManagerIdentityProviderTypeConfiguration" resultMap="TenantManagerIdentityProviderTypeConfiguration">
+    <include refid="selectTenantManagerIdentityProviderTypeConfigurations"/>
+    WHERE type = #{type}
+  </select>
+
+  <select id="retrieveTenantManagerIdentityProviderTypeConfigurations" resultMap="TenantManagerIdentityProviderTypeConfiguration">
+    <include refid="selectTenantManagerIdentityProviderTypeConfigurations"/>
+  </select>
+
+  <insert id="createTenantManagerIdentityProviderTypeConfiguration">
+    INSERT INTO tenant_manager_identity_provider_type_configurations (type, enabled, data, insert_instant, last_update_instant)
+    VALUES (#{type}, #{enabled}, #{dataToDatabase}, #{insertInstant}, #{lastUpdateInstant})
+  </insert>
+
+  <update id="updateTenantManagerIdentityProviderTypeConfiguration">
+    UPDATE tenant_manager_identity_provider_type_configurations
+    SET
+      enabled = #{enabled},
+      data = #{dataToDatabase},
+      last_update_instant = #{lastUpdateInstant}
+    WHERE type = #{type}
+  </update>
+
+  <sql id="selectTenantManagerApplicationConfigurations">
+    SELECT
+      tma.applications_id AS tma_applications_id
+    FROM tenant_manager_applications AS tma
+  </sql>
+
+  <select id="retrieveTenantManagerApplicationConfigurations" resultMap="TenantManagerApplicationConfiguration">
+    <include refid="selectTenantManagerApplicationConfigurations"/>
+  </select>
+
+  <insert id="createTenantManagerApplicationConfigurations">
+    INSERT INTO tenant_manager_applications (applications_id) VALUES
+    <foreach collection="applicationConfigurations" item="appConfig" separator=",">
+      (#{appConfig.applicationId})
+    </foreach>
+  </insert>
+</mapper>

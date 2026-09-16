@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c) 2018-2019, FusionAuth, All Rights Reserved
+  -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.FusionAuthNodeMapper">
+
+  <resultMap id="FusionAuthNode" type="io.fusionauth.api.domain.FusionAuthNodeMapper$FusionAuthNode">
+    <id property="id" column="id"/>
+    <result property="dataFromDatabase" column="data"/>
+    <result property="insert_instant" column="insertInstant"/>
+    <result property="last_checkin_instant" column="lastCheckinInstant"/>
+    <result property="runtime_mode" column="runtimeMode"/>
+    <result property="url" column="url"/>
+  </resultMap>
+
+  <select id="retrieveAll" resultMap="FusionAuthNode">
+    SELECT * FROM nodes ORDER BY id;
+  </select>
+
+  <select id="retrieveById" resultMap="FusionAuthNode">
+    SELECT * FROM nodes WHERE id = #{id}
+  </select>
+
+  <delete id="delete">
+    DELETE FROM nodes WHERE id = #{id}
+  </delete>
+
+  <update id="upsert" databaseId="mysql">
+    INSERT INTO nodes (id, data, insert_instant, last_checkin_instant, runtime_mode, url) VALUES (#{id}, #{dataToDatabase}, #{lastCheckinInstant}, #{lastCheckinInstant}, #{runtimeMode}, #{url})
+    ON DUPLICATE KEY UPDATE last_checkin_instant = VALUES(last_checkin_instant), url = VALUES(url)
+  </update>
+
+  <update id="upsert" databaseId="postgresql">
+    INSERT INTO nodes (id, data, insert_instant, last_checkin_instant, runtime_mode, url) VALUES (#{id}, #{dataToDatabase}, #{lastCheckinInstant}, #{lastCheckinInstant}, #{runtimeMode}, #{url})
+    ON CONFLICT (id) DO UPDATE SET last_checkin_instant = EXCLUDED.last_checkin_instant, url = EXCLUDED.url
+  </update>
+
+</mapper>

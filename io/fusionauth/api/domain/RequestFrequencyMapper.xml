@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (c) 2021, FusionAuth, All Rights Reserved
+  -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.RequestFrequencyMapper">
+
+  <resultMap id="RequestFrequencyRecord" type="io.fusionauth.api.domain.RequestFrequencyRecord">
+    <result property="count" column="rf_count"/>
+    <result property="lastUpdateInstant" column="rf_last_update_instant"/>
+    <result property="requestId" column="rf_request_id"/>
+    <result property="tenantId" column="rf_tenants_id"/>
+    <result property="type" column="rf_type"/>
+  </resultMap>
+
+  <!--@formatter:off-->
+  <select id="retrieveRequestFrequencyRecordForUserAndLock" resultMap="RequestFrequencyRecord">
+    SELECT
+    count                    AS rf_count,
+    rf.last_update_instant   AS rf_last_update_instant,
+    rf.request_id            AS rf_request_id,
+    rf.tenants_id            AS rf_tenants_id,
+    rf.type                  AS rf_type
+    FROM request_frequencies AS rf
+    WHERE
+    <if test="tenantId != null">
+      rf.tenants_id = #{tenantId} AND
+    </if>
+    rf.type = #{type} AND rf.request_id = #{requestId}
+    FOR UPDATE
+  </select>
+  <!--@formatter:on-->
+
+  <!--@formatter:off-->
+  <select id="retrieveRequestFrequencyRecord" resultMap="RequestFrequencyRecord">
+    SELECT
+      count                    AS rf_count,
+      rf.last_update_instant   AS rf_last_update_instant,
+      rf.request_id            AS rf_request_id,
+      rf.tenants_id            AS rf_tenants_id,
+      rf.type                  AS rf_type
+      FROM request_frequencies AS rf
+      WHERE rf.tenants_id = #{tenantId} AND rf.request_id = #{requestId} AND rf.type = #{type}
+  </select>
+  <!--@formatter:on-->
+
+  <!--@formatter:off-->
+  <select id="retrieveRequestFrequencyRecordNewerThan" resultMap="RequestFrequencyRecord">
+    SELECT
+      count                    AS rf_count,
+      rf.last_update_instant   AS rf_last_update_instant,
+      rf.request_id            AS rf_request_id,
+      rf.tenants_id            AS rf_tenants_id,
+      rf.type                  AS rf_type
+      FROM request_frequencies AS rf
+      WHERE rf.tenants_id = #{tenantId} AND rf.request_id = #{requestId} AND rf.type = #{type}
+      AND rf.last_update_instant &gt; #{cutoff}
+  </select>
+  <!--@formatter:on-->
+
+  <!--@formatter:off-->
+  <insert id="upsertRequestFrequencyRecord" databaseId="postgresql">
+    INSERT INTO request_frequencies AS rf (count, last_update_instant, request_id, tenants_id, type)
+      VALUES (#{record.count}, #{record.lastUpdateInstant}, #{record.requestId}, #{record.tenantId}, #{record.type})
+    ON CONFLICT (tenants_id, type, request_id) DO
+    UPDATE
+      SET
+      count = CASE
+      WHEN excluded.last_update_instant > (rf.last_update_instant + (#{timePeriodInSeconds} * 1000)) THEN 1
+      ELSE rf.count + 1
+    END
+    , last_update_instant = excluded.last_update_instant
+  </insert>
+  <!--@formatter:on-->
+
+  <!--@formatter:off-->
+  <insert id="upsertRequestFrequencyRecord" databaseId="mysql">
+    INSERT INTO request_frequencies (count, last_update_instant, request_id, tenants_id, type)
+      VALUES (#{record.count}, #{record.lastUpdateInstant}, #{record.requestId}, #{record.tenantId}, #{record.type}) ON DUPLICATE KEY
+    UPDATE
+      count = CASE
+      WHEN #{record.lastUpdateInstant} > (last_update_instant + (#{timePeriodInSeconds} * 1000)) THEN 1
+      ELSE count + 1
+    END
+    , last_update_instant = #{record.lastUpdateInstant}
+  </insert>
+  <!--@formatter:on-->
+
+  <!--@formatter:off-->
+  <insert id="createRequestFrequencyRecord">
+    INSERT INTO request_frequencies (count, last_update_instant, request_id, tenants_id, type)
+      VALUES (#{record.count}, #{record.lastUpdateInstant}, #{record.requestId}, #{record.tenantId}, #{record.type})
+  </insert>
+  <!--@formatter:on-->
+
+  <!--@formatter:on-->
+  <update id="updateRequestFrequencyRecord">
+    UPDATE request_frequencies
+    SET
+      count             = #{record.count},
+      last_update_instant = #{record.lastUpdateInstant}
+    WHERE
+      tenants_id = #{record.tenantId} AND request_id = #{record.requestId} AND type = #{record.type}
+  </update>
+  <!--@formatter:on-->
+</mapper>

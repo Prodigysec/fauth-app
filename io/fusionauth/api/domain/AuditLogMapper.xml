@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.fusionauth.api.domain.AuditLogMapper">
+  <resultMap id="AuditLog" type="io.fusionauth.domain.AuditLog">
+    <id column="id" property="id"/>
+    <result column="data" property="dataFromDatabase"/>
+    <result column="insert_instant" property="insertInstant"/>
+    <result column="insert_user" property="insertUser"/>
+    <result column="message" property="message"/>
+    <result column="tenants_id" property="tenantId"/>
+  </resultMap>
+
+  <select id="retrieveByCriteria" resultMap="AuditLog">
+    SELECT al.* FROM audit_logs AS al
+    LEFT OUTER JOIN tenants AS t ON t.id = al.tenants_id
+    <where>
+      <if test="user != null">
+        AND LOWER(al.insert_user) LIKE #{user}
+      </if>
+      <if test="tenantId != null">
+        AND al.tenants_id = #{tenantId}
+      </if>
+      <if test="message != null">
+        AND LOWER(al.message) LIKE #{message}
+      </if>
+      <if test="oldValue != null">
+        <if test="_databaseId == 'mysql'">
+          AND LOWER(al.data ->> '$.oldValue') LIKE #{oldValue}
+        </if>
+        <if test="_databaseId == 'postgresql'">
+          AND LOWER(al.data::JSONB ->> 'oldValue') LIKE #{oldValue}
+        </if>
+      </if>
+      <if test="newValue != null">
+        <if test="_databaseId == 'mysql'">
+          AND LOWER(al.data ->> '$.newValue') LIKE #{newValue}
+        </if>
+        <if test="_databaseId == 'postgresql'">
+          AND LOWER(al.data::JSONB ->> 'newValue') LIKE #{newValue}
+        </if>
+      </if>
+      <if test="reason != null">
+        <if test="_databaseId == 'mysql'">
+          AND LOWER(al.data ->> '$.reason') LIKE #{reason}
+        </if>
+        <if test="_databaseId == 'postgresql'">
+          AND LOWER(al.data::JSONB ->> 'reason') LIKE #{reason}
+        </if>
+      </if>
+      <if test="start != null">
+        AND al.insert_instant &gt;= #{start}
+      </if>
+      <if test="end != null">
+        AND al.insert_instant &lt;= #{end}
+      </if>
+    </where>
+    <if test="orderBy != null">
+      ORDER BY ${orderBy}
+    </if>
+    <if test="numberOfResults != null">
+      LIMIT #{numberOfResults}
+    </if>
+    <if test="startRow != null">
+      OFFSET #{startRow}
+    </if>
+  </select>
+
+  <select id="retrieveCountByCriteria" resultType="int">
+    SELECT COUNT(*) FROM audit_logs
+    <where>
+      <if test="user != null">
+        AND LOWER(insert_user) LIKE #{user}
+      </if>
+      <if test="tenantId != null">
+        AND tenants_id = #{tenantId}
+      </if>
+      <if test="message != null">
+        AND LOWER(message) LIKE #{message}
+      </if>
+      <if test="oldValue != null">
+        <if test="_databaseId == 'mysql'">
+          AND LOWER(data ->> '$.oldValue') LIKE #{oldValue}
+        </if>
+        <if test="_databaseId == 'postgresql'">
+          AND LOWER(data::JSONB ->> 'oldValue') LIKE #{oldValue}
+        </if>
+      </if>
+      <if test="newValue != null">
+        <if test="_databaseId == 'mysql'">
+          AND LOWER(data ->> '$.newValue') LIKE #{newValue}
+        </if>
+        <if test="_databaseId == 'postgresql'">
+          AND LOWER(data::JSONB ->> 'newValue') LIKE #{newValue}
+        </if>
+      </if>
+      <if test="reason != null">
+        <if test="_databaseId == 'mysql'">
+          AND LOWER(data ->> '$.reason') LIKE #{reason}
+        </if>
+        <if test="_databaseId == 'postgresql'">
+          AND LOWER(data::JSONB ->> 'reason') LIKE #{reason}
+        </if>
+      </if>
+      <if test="start != null">
+        AND insert_instant &gt;= #{start}
+      </if>
+      <if test="end != null">
+        AND insert_instant &lt;= #{end}
+      </if>
+    </where>
+  </select>
+
+  <select id="retrieveById" resultMap="AuditLog">
+      SELECT * FROM audit_logs
+      WHERE id = #{id}
+      <if test="tenantId != null">
+        AND tenants_id = #{tenantId}
+      </if>
+    </select>
+</mapper>
